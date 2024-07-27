@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 
-function SortableTable({ columns, data, actions }) {
+function SortableTable({ columns, data, actions, renderExpandedRow }) {
   const [sortConfig, setSortConfig] = useState({
     key: null,
     direction: "ascending",
@@ -63,17 +63,20 @@ function SortableTable({ columns, data, actions }) {
         </thead>
         <tbody>
           {sortedData.map((item) => (
-            <tr key={item.id} className="bg-background border-b border-border">
-              {columns.map((column) => (
-                <td
-                  key={column.key}
-                  className={`px-6 py-4 ${column.className || ""}`}
-                >
-                  {column.render ? column.render(item) : item[column.key]}
-                </td>
-              ))}
-              {actions && <td className="px-6 py-4">{actions(item)}</td>}
-            </tr>
+            <React.Fragment key={item.id}>
+              <tr className="bg-background border-b border-border">
+                {columns.map((column) => (
+                  <td
+                    key={column.key}
+                    className={`px-6 py-4 ${column.className || ""}`}
+                  >
+                    {column.render ? column.render(item) : item[column.key]}
+                  </td>
+                ))}
+                {actions && <td className="px-6 py-4">{actions(item)}</td>}
+              </tr>
+              {renderExpandedRow && renderExpandedRow(item)}
+            </React.Fragment>
           ))}
         </tbody>
       </table>

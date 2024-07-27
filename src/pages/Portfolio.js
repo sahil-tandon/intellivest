@@ -1,22 +1,14 @@
 import React, { useState, useEffect } from "react";
-import AddStockForm from "../components/AddStockForm";
-import SellStockForm from "../components/SellStockForm";
+import StockTransactionForm from "../components/StockTransactionForm";
 import SortableTable from "../components/SortableTable";
 import { motion } from "framer-motion";
-import { FaTrash, FaMoneyBillWave } from "react-icons/fa";
+import { FaMoneyBillWave, FaPlusCircle, FaTrash } from "react-icons/fa";
 
 function Portfolio() {
   const [portfolio, setPortfolio] = useState([]);
   const [pastRecords, setPastRecords] = useState([]);
-  const [portfolioSortConfig, setPortfolioSortConfig] = useState({
-    key: null,
-    direction: "ascending",
-  });
-  const [pastRecordsSortConfig, setPastRecordsSortConfig] = useState({
-    key: null,
-    direction: "ascending",
-  });
   const [sellStock, setSellStock] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
     const savedPortfolio = localStorage.getItem("portfolio");
@@ -32,6 +24,7 @@ function Portfolio() {
 
   const addStock = (stock) => {
     setPortfolio([...portfolio, { ...stock, id: Date.now() }]);
+    setShowAddForm(false);
   };
 
   const getCurrentPrice = (symbol) => {
@@ -49,12 +42,9 @@ function Portfolio() {
     setPortfolio(portfolio.filter((stock) => stock.id !== id));
   };
 
-  const handleSellStock = (id, sellPrice, sellQuantity, sellDate) => {
-    const stock = portfolio.find((s) => s.id === id);
-    if (!stock) return;
-
+  const handleSellStock = (stock, sellPrice, sellQuantity, sellDate) => {
     const totalSellAmount = sellQuantity * sellPrice;
-    const totalBuyAmount = sellQuantity * stock.purchasePrice;
+    const totalBuyAmount = sellQuantity * stock.price;
     const profit = totalSellAmount - totalBuyAmount;
     const profitPercentage = (profit / totalBuyAmount) * 100;
 
@@ -62,23 +52,23 @@ function Portfolio() {
       id: Date.now(),
       symbol: stock.symbol,
       quantity: sellQuantity,
-      purchasePrice: stock.purchasePrice,
-      purchaseDate: stock.purchaseDate,
+      purchasePrice: stock.price,
+      purchaseDate: stock.date,
       sellPrice,
       sellDate,
       profit,
       profitPercentage,
-      daysHeld: calculateDaysHeld(stock.purchaseDate, sellDate),
+      daysHeld: calculateDaysHeld(stock.date, sellDate),
     };
 
     setPastRecords([...pastRecords, soldRecord]);
 
     if (sellQuantity === stock.quantity) {
-      setPortfolio(portfolio.filter((s) => s.id !== id));
+      setPortfolio(portfolio.filter((s) => s.id !== stock.id));
     } else {
       setPortfolio(
         portfolio.map((s) =>
-          s.id === id ? { ...s, quantity: s.quantity - sellQuantity } : s
+          s.id === stock.id ? { ...s, quantity: s.quantity - sellQuantity } : s
         )
       );
     }
@@ -86,40 +76,13 @@ function Portfolio() {
     setSellStock(null);
   };
 
-  const sortData = (data, sortConfig) => {
-    if (!sortConfig.key) return data;
-
-    return [...data].sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
-        return sortConfig.direction === "ascending" ? -1 : 1;
-      }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
-        return sortConfig.direction === "ascending" ? 1 : -1;
-      }
-      return 0;
-    });
-  };
-
-  const handleSort = (key, setSortConfig) => {
-    setSortConfig((prevConfig) => {
-      if (prevConfig.key === key) {
-        return {
-          ...prevConfig,
-          direction:
-            prevConfig.direction === "ascending" ? "descending" : "ascending",
-        };
-      }
-      return { key, direction: "ascending" };
-    });
-  };
-
   const portfolioColumns = [
     { key: "symbol", label: "Symbol" },
     { key: "quantity", label: "Quantity" },
     {
-      key: "purchasePrice",
+      key: "price",
       label: "Purchase Price",
-      render: (stock) => `$${stock.purchasePrice.toFixed(2)}`,
+      render: (stock) => `$${Number(stock.price).toFixed(2)}`,
     },
     {
       key: "currentPrice",
@@ -137,7 +100,7 @@ function Portfolio() {
       label: "Profit",
       render: (stock) => {
         const profit =
-          (getCurrentPrice(stock.symbol) - stock.purchasePrice) *
+          (getCurrentPrice(stock.symbol) - Number(stock.price)) *
           stock.quantity;
         return (
           <span className={profit >= 0 ? "text-profit" : "text-loss"}>
@@ -151,8 +114,8 @@ function Portfolio() {
       label: "Profit %",
       render: (stock) => {
         const profitPercentage =
-          ((getCurrentPrice(stock.symbol) - stock.purchasePrice) /
-            stock.purchasePrice) *
+          ((getCurrentPrice(stock.symbol) - Number(stock.price)) /
+            Number(stock.price)) *
           100;
         return (
           <span className={profitPercentage >= 0 ? "text-profit" : "text-loss"}>
@@ -161,11 +124,11 @@ function Portfolio() {
         );
       },
     },
-    { key: "purchaseDate", label: "Purchase Date" },
+    { key: "date", label: "Purchase Date" },
     {
       key: "daysHeld",
       label: "Days Held",
-      render: (stock) => calculateDaysHeld(stock.purchaseDate),
+      render: (stock) => calculateDaysHeld(stock.date),
     },
   ];
 
@@ -175,24 +138,25 @@ function Portfolio() {
     {
       key: "purchasePrice",
       label: "Purchase Price",
-      render: (record) => `$${record.purchasePrice.toFixed(2)}`,
+      render: (record) => `$${Number(record.purchasePrice).toFixed(2)}`,
     },
     {
       key: "sellPrice",
       label: "Sell Price",
-      render: (record) => `$${record.sellPrice.toFixed(2)}`,
+      render: (record) => `$${Number(record.sellPrice).toFixed(2)}`,
     },
     {
       key: "totalAmount",
       label: "Total Amount",
-      render: (record) => `$${(record.quantity * record.sellPrice).toFixed(2)}`,
+      render: (record) =>
+        `$${(record.quantity * Number(record.sellPrice)).toFixed(2)}`,
     },
     {
       key: "profit",
       label: "Profit/Loss",
       render: (record) => (
         <span className={record.profit >= 0 ? "text-profit" : "text-loss"}>
-          ${record.profit.toFixed(2)}
+          ${Number(record.profit).toFixed(2)}
         </span>
       ),
     },
@@ -203,7 +167,7 @@ function Portfolio() {
         <span
           className={record.profitPercentage >= 0 ? "text-profit" : "text-loss"}
         >
-          {record.profitPercentage.toFixed(2)}%
+          {Number(record.profitPercentage).toFixed(2)}%
         </span>
       ),
     },
@@ -212,16 +176,58 @@ function Portfolio() {
     { key: "daysHeld", label: "Days Held" },
   ];
 
+  const renderSellForm = (stock) => (
+    <tr>
+      <td colSpan={portfolioColumns.length + 1}>
+        <StockTransactionForm
+          onSubmit={(sellData) =>
+            handleSellStock(
+              stock,
+              sellData.price,
+              sellData.quantity,
+              sellData.date
+            )
+          }
+          initialData={{
+            symbol: stock.symbol,
+            quantity: stock.quantity,
+            price: getCurrentPrice(stock.symbol),
+            date: new Date().toISOString().split("T")[0],
+          }}
+          submitButtonText="Sell Stock"
+          fields={[
+            {
+              name: "quantity",
+              label: "Quantity to Sell",
+              type: "number",
+              max: stock.quantity,
+            },
+            {
+              name: "price",
+              label: "Sell Price",
+              type: "number",
+              step: "0.01",
+            },
+            { name: "date", label: "Sell Date", type: "date" },
+          ]}
+        />
+        <button
+          onClick={() => setSellStock(null)}
+          className="mt-2 bg-text-secondary text-background px-4 py-2 rounded hover:bg-opacity-90 transition duration-200"
+        >
+          Cancel
+        </button>
+      </td>
+    </tr>
+  );
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8 text-primary">Your Portfolio</h1>
-      <AddStockForm onAddStock={addStock} />
 
       <SortableTable
         columns={portfolioColumns}
-        data={sortData(portfolio, portfolioSortConfig)}
-        sortConfig={portfolioSortConfig}
-        onSort={(key) => handleSort(key, setPortfolioSortConfig)}
+        data={portfolio}
         actions={(stock) => (
           <>
             <button
@@ -238,27 +244,50 @@ function Portfolio() {
             </button>
           </>
         )}
+        renderExpandedRow={(stock) =>
+          sellStock && sellStock.id === stock.id && renderSellForm(stock)
+        }
       />
 
-      {sellStock && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <SellStockForm
-            stock={sellStock}
-            onSell={handleSellStock}
-            onCancel={() => setSellStock(null)}
+      {showAddForm ? (
+        <div className="mt-4">
+          <StockTransactionForm
+            onSubmit={addStock}
+            submitButtonText="Add Stock"
+            fields={[
+              { name: "symbol", label: "Stock Symbol", type: "text" },
+              { name: "quantity", label: "Quantity", type: "number" },
+              {
+                name: "price",
+                label: "Purchase Price",
+                type: "number",
+                step: "0.01",
+              },
+              { name: "date", label: "Purchase Date", type: "date" },
+            ]}
           />
+          <button
+            onClick={() => setShowAddForm(false)}
+            className="mt-2 bg-text-secondary text-background px-4 py-2 rounded hover:bg-opacity-90 transition duration-200"
+          >
+            Cancel
+          </button>
         </div>
+      ) : (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowAddForm(true)}
+          className="mt-4 bg-primary text-background px-4 py-2 rounded hover:bg-opacity-90 transition duration-200 flex items-center"
+        >
+          <FaPlusCircle className="mr-2" /> Add Stock
+        </motion.button>
       )}
 
       <h2 className="text-2xl font-bold mt-12 mb-4 text-primary">
         Past Records
       </h2>
-      <SortableTable
-        columns={pastRecordsColumns}
-        data={sortData(pastRecords, pastRecordsSortConfig)}
-        sortConfig={pastRecordsSortConfig}
-        onSort={(key) => handleSort(key, setPastRecordsSortConfig)}
-      />
+      <SortableTable columns={pastRecordsColumns} data={pastRecords} />
     </div>
   );
 }
