@@ -13,7 +13,8 @@ function AddStockForm({ onAddStock }) {
       symbol,
       quantity: Number(quantity),
       purchasePrice: Number(purchasePrice),
-      purchaseDate: new Date(purchaseDate),
+      purchaseDate,
+      currentPrice: Number(purchasePrice), // Placeholder for now
     });
     setSymbol("");
     setQuantity("");
@@ -38,18 +39,18 @@ function AddStockForm({ onAddStock }) {
         />
         <input
           type="number"
-          step="any"
-          value={purchasePrice}
-          onChange={(e) => setPurchasePrice(e.target.value)}
-          placeholder="Purchase Price"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          placeholder="Quantity"
           className="bg-background text-text-primary border border-border rounded p-2"
           required
         />
         <input
           type="number"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          placeholder="Quantity"
+          step="0.01"
+          value={purchasePrice}
+          onChange={(e) => setPurchasePrice(e.target.value)}
+          placeholder="Purchase Price"
           className="bg-background text-text-primary border border-border rounded p-2"
           required
         />
@@ -64,7 +65,8 @@ function AddStockForm({ onAddStock }) {
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="mt-4 px-4 py-2 bg-primary text-background rounded shadow-lg"
+        type="submit"
+        className="mt-4 bg-primary text-background px-4 py-2 rounded hover:bg-opacity-90 transition duration-200"
       >
         Add Stock
       </motion.button>
