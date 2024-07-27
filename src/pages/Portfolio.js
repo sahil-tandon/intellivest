@@ -4,6 +4,10 @@ import { motion } from "framer-motion";
 
 function Portfolio() {
   const [portfolio, setPortfolio] = useState([]);
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: "ascending",
+  });
 
   useEffect(() => {
     const savedPortfolio = localStorage.getItem("portfolio");
@@ -20,45 +24,124 @@ function Portfolio() {
     setPortfolio([...portfolio, { ...stock, id: Date.now() }]);
   };
 
-  // Placeholder function for fetching current price
   const getCurrentPrice = (symbol) => {
-    // updated this later to fetch the current price from an API
     return Math.random() * 100 + 50;
+  };
+
+  const sortedPortfolio = React.useMemo(() => {
+    let sortableItems = [...portfolio];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === "ascending" ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === "ascending" ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [portfolio, sortConfig]);
+
+  const requestSort = (key) => {
+    let direction = "ascending";
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
+    }
+    setSortConfig({ key, direction });
   };
 
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8 text-primary">Your Portfolio</h1>
       <AddStockForm onAddStock={addStock} />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {portfolio.map((stock) => {
-          const currentPrice = getCurrentPrice(stock.symbol);
-          const value = currentPrice * stock.quantity;
-          const profit = value - stock.purchasePrice * stock.quantity;
-          const profitPercentage =
-            (profit / (stock.purchasePrice * stock.quantity)) * 100;
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-card rounded-lg shadow-lg">
+          <thead>
+            <tr>
+              <th
+                onClick={() => requestSort("symbol")}
+                className="p-4 cursor-pointer"
+              >
+                Symbol
+              </th>
+              <th
+                onClick={() => requestSort("purchasePrice")}
+                className="p-4 cursor-pointer"
+              >
+                Purchase Price
+              </th>
+              <th
+                onClick={() => requestSort("quantity")}
+                className="p-4 cursor-pointer"
+              >
+                Quantity
+              </th>
+              <th
+                onClick={() => requestSort("purchaseDate")}
+                className="p-4 cursor-pointer"
+              >
+                Purchase Date
+              </th>
+              <th
+                onClick={() => requestSort("daysHeld")}
+                className="p-4 cursor-pointer"
+              >
+                Days Held
+              </th>
+              <th
+                onClick={() => requestSort("totalProfit")}
+                className="p-4 cursor-pointer"
+              >
+                Total Profit
+              </th>
+              <th
+                onClick={() => requestSort("profitPercent")}
+                className="p-4 cursor-pointer"
+              >
+                Profit %
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedPortfolio.map((stock) => {
+              const currentPrice = getCurrentPrice(stock.symbol);
+              const value = currentPrice * stock.quantity;
+              const profit = value - stock.purchasePrice * stock.quantity;
+              const profitPercentage =
+                (profit / (stock.purchasePrice * stock.quantity)) * 100;
+              const purchaseDate = new Date(stock.purchaseDate);
+              const daysHeld = Math.floor(
+                (new Date() - purchaseDate) / (1000 * 60 * 60 * 24)
+              );
 
-          return (
-            <motion.div
-              key={stock.id}
-              className="bg-card p-6 rounded-lg shadow-lg"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <h2 className="text-xl font-bold mb-2 text-primary">
-                {stock.symbol}
-              </h2>
-              <p>Quantity: {stock.quantity}</p>
-              <p>Purchase Price: ${stock.purchasePrice.toFixed(2)}</p>
-              <p>Current Price: ${currentPrice.toFixed(2)}</p>
-              <p>Current Value: ${value.toFixed(2)}</p>
-              <p className={profit >= 0 ? "text-profit" : "text-loss"}>
-                Profit/Loss: ${profit.toFixed(2)} ({profitPercentage.toFixed(2)}
-                %)
-              </p>
-            </motion.div>
-          );
-        })}
+              return (
+                <tr key={stock.id} className="border-b border-border">
+                  <td className="p-4">{stock.symbol}</td>
+                  <td className="p-4">${stock.purchasePrice.toFixed(2)}</td>
+                  <td className="p-4">{stock.quantity}</td>
+                  <td className="p-4">{purchaseDate.toLocaleDateString()}</td>
+                  <td className="p-4">{daysHeld}</td>
+                  <td
+                    className={`p-4 ${
+                      profit >= 0 ? "text-profit" : "text-loss"
+                    }`}
+                  >
+                    ${profit.toFixed(2)}
+                  </td>
+                  <td
+                    className={`p-4 ${
+                      profit >= 0 ? "text-profit" : "text-loss"
+                    }`}
+                  >
+                    {profitPercentage.toFixed(2)}%
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
