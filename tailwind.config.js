@@ -15,6 +15,19 @@ module.exports = {
         card: "#1E1639",
         border: "#2D3748",
       },
+      boxShadow: {
+        glow: "0 0 10px rgba(99, 102, 241, 0.5)",
+      },
+      backdropFilter: {
+        none: "none",
+        blur: "blur(20px)",
+      },
+    },
+  },
+  variants: {
+    extend: {
+      boxShadow: ["hover", "focus"],
+      backdropFilter: ["hover", "focus"],
     },
   },
   plugins: [],

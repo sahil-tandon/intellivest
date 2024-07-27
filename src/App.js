@@ -9,13 +9,26 @@ import Newsroom from "./pages/Newsroom";
 import MarketOverview from "./pages/MarketOverview";
 
 const NavButton = ({ to, icon, children }) => (
-  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+  <motion.div
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    className="relative"
+  >
     <Link
       to={to}
-      className="flex items-center px-4 py-2 text-text-primary hover:bg-primary hover:text-background rounded transition duration-200"
+      className="flex items-center px-4 py-2 text-text-primary hover:text-background rounded transition duration-200 group"
     >
-      {icon}
-      <span className="ml-2">{children}</span>
+      <motion.div
+        className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100 rounded transition-opacity duration-200"
+        layoutId="bubble"
+      />
+      <span className="relative z-10 flex items-center">
+        {React.cloneElement(icon, {
+          className:
+            "text-secondary group-hover:text-background transition duration-200",
+        })}
+        <span className="ml-2">{children}</span>
+      </span>
     </Link>
   </motion.div>
 );
@@ -23,30 +36,27 @@ const NavButton = ({ to, icon, children }) => (
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-background text-text-primary">
-        <nav className="p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background to-card text-text-primary">
+        <nav className="bg-card bg-opacity-80 backdrop-filter backdrop-blur-lg p-4 shadow-lg">
           <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-primary text-2xl font-bold">Intellivest</h1>
+            <motion.h1
+              className="text-primary text-2xl font-bold"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Intellivest
+            </motion.h1>
             <div className="flex space-x-4">
-              <NavButton to="/" icon={<FaHome className="text-secondary" />}>
+              <NavButton to="/" icon={<FaHome />}>
                 Home
               </NavButton>
-              <NavButton
-                to="/portfolio"
-                icon={<FaChartLine className="text-secondary" />}
-              >
+              <NavButton to="/portfolio" icon={<FaChartLine />}>
                 Portfolio
               </NavButton>
-              <NavButton
-                to="/newsroom"
-                icon={<FaNewspaper className="text-secondary" />}
-              >
+              <NavButton to="/newsroom" icon={<FaNewspaper />}>
                 Newsroom
               </NavButton>
-              <NavButton
-                to="/market"
-                icon={<FaGlobe className="text-secondary" />}
-              >
+              <NavButton to="/market" icon={<FaGlobe />}>
                 Market
               </NavButton>
             </div>
