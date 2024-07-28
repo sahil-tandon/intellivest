@@ -24,14 +24,24 @@ function Portfolio() {
   useEffect(() => {
     const savedPortfolio = localStorage.getItem("portfolio");
     const savedPastRecords = localStorage.getItem("pastRecords");
+    const cachedPrices = localStorage.getItem("stockPrices");
     if (savedPortfolio) setPortfolio(JSON.parse(savedPortfolio));
     if (savedPastRecords) setPastRecords(JSON.parse(savedPastRecords));
+    if (cachedPrices) {
+      setStockPrices(JSON.parse(cachedPrices));
+      setLastUpdated(new Date(localStorage.getItem("lastUpdated")));
+    }
   }, []);
 
   useEffect(() => {
     localStorage.setItem("portfolio", JSON.stringify(portfolio));
     localStorage.setItem("pastRecords", JSON.stringify(pastRecords));
   }, [portfolio, pastRecords]);
+
+  useEffect(() => {
+    localStorage.setItem("stockPrices", JSON.stringify(stockPrices));
+    localStorage.setItem("lastUpdated", lastUpdated);
+  }, [stockPrices, lastUpdated]);
 
   const addStock = (stock) => {
     setPortfolio([...portfolio, { ...stock, id: Date.now() }]);
