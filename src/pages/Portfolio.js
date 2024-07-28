@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
+import EditStockForm from "../components/EditStockForm";
 import StockTransactionForm from "../components/StockTransactionForm";
 import SortableTable from "../components/SortableTable";
 import { motion } from "framer-motion";
-import { FaMoneyBillWave, FaPlusCircle, FaTrash } from "react-icons/fa";
+import { FaEdit, FaMoneyBillWave, FaPlusCircle, FaTrash } from "react-icons/fa";
 
 function Portfolio() {
   const [portfolio, setPortfolio] = useState([]);
   const [pastRecords, setPastRecords] = useState([]);
   const [sellStock, setSellStock] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingStock, setEditingStock] = useState(null);
+  const [editingRecord, setEditingRecord] = useState(null);
 
   useEffect(() => {
     const savedPortfolio = localStorage.getItem("portfolio");
@@ -44,6 +47,26 @@ function Portfolio() {
 
   const deletePastRecord = (id) => {
     setPastRecords(pastRecords.filter((record) => record.id !== id));
+  };
+
+  const handleEditStock = (updatedStock) => {
+    setPortfolio(
+      portfolio.map((stock) =>
+        stock.id === updatedStock.id ? { ...stock, ...updatedStock } : stock
+      )
+    );
+    setEditingStock(null);
+  };
+
+  const handleEditRecord = (updatedRecord) => {
+    setPastRecords(
+      pastRecords.map((record) =>
+        record.id === updatedRecord.id
+          ? { ...record, ...updatedRecord }
+          : record
+      )
+    );
+    setEditingRecord(null);
   };
 
   const handleSellStock = (stock, sellPrice, sellQuantity, sellDate) => {
@@ -235,6 +258,12 @@ function Portfolio() {
         actions={(stock) => (
           <>
             <button
+              onClick={() => setEditingStock(stock)}
+              className="text-primary hover:text-secondary mr-2"
+            >
+              <FaEdit />
+            </button>
+            <button
               onClick={() => setSellStock(stock)}
               className="text-secondary hover:text-primary mr-2"
             >
@@ -249,7 +278,19 @@ function Portfolio() {
           </>
         )}
         renderExpandedRow={(stock) =>
-          sellStock && sellStock.id === stock.id && renderSellForm(stock)
+          editingStock && editingStock.id === stock.id ? (
+            <tr>
+              <td colSpan={portfolioColumns.length + 1}>
+                <EditStockForm
+                  stock={editingStock}
+                  onSubmit={handleEditStock}
+                  onCancel={() => setEditingStock(null)}
+                />
+              </td>
+            </tr>
+          ) : (
+            sellStock && sellStock.id === stock.id && renderSellForm(stock)
+          )
         }
       />
 
@@ -295,13 +336,36 @@ function Portfolio() {
         columns={pastRecordsColumns}
         data={pastRecords}
         actions={(record) => (
-          <button
-            onClick={() => deletePastRecord(record.id)}
-            className="text-loss hover:text-primary"
-          >
-            <FaTrash />
-          </button>
+          <>
+            <button
+              onClick={() => setEditingRecord(record)}
+              className="text-primary hover:text-secondary mr-2"
+            >
+              <FaEdit />
+            </button>
+            <button
+              onClick={() => deletePastRecord(record.id)}
+              className="text-loss hover:text-primary"
+            >
+              <FaTrash />
+            </button>
+          </>
         )}
+        renderExpandedRow={(stock) =>
+          editingStock && editingStock.id === stock.id ? (
+            <tr>
+              <td colSpan={portfolioColumns.length + 1}>
+                <EditStockForm
+                  stock={editingStock}
+                  onSubmit={handleEditStock}
+                  onCancel={() => setEditingStock(null)}
+                />
+              </td>
+            </tr>
+          ) : (
+            sellStock && sellStock.id === stock.id && renderSellForm(stock)
+          )
+        }
       />
     </div>
   );
