@@ -42,6 +42,10 @@ function Portfolio() {
     setPortfolio(portfolio.filter((stock) => stock.id !== id));
   };
 
+  const deletePastRecord = (id) => {
+    setPastRecords(pastRecords.filter((record) => record.id !== id));
+  };
+
   const handleSellStock = (stock, sellPrice, sellQuantity, sellDate) => {
     const totalSellAmount = sellQuantity * sellPrice;
     const totalBuyAmount = sellQuantity * stock.price;
@@ -287,7 +291,18 @@ function Portfolio() {
       <h2 className="text-2xl font-bold mt-12 mb-4 text-primary">
         Past Records
       </h2>
-      <SortableTable columns={pastRecordsColumns} data={pastRecords} />
+      <SortableTable
+        columns={pastRecordsColumns}
+        data={pastRecords}
+        actions={(record) => (
+          <button
+            onClick={() => deletePastRecord(record.id)}
+            className="text-loss hover:text-primary"
+          >
+            <FaTrash />
+          </button>
+        )}
+      />
     </div>
   );
 }
