@@ -10,6 +10,13 @@ import { FaEdit, FaMoneyBillWave, FaPlusCircle, FaTrash } from "react-icons/fa";
 const API_KEY = "RlbWU8cx7cbRW4fGZqNhKElV8Z1f1BEd";
 const API_URL = "https://financialmodelingprep.com/api/v3";
 
+const exchangePrefixMap = {
+  NSE: ".NS",
+  BSE: ".BO",
+  NYSE: "",
+  NASDAQ: "",
+};
+
 function Portfolio() {
   const [portfolio, setPortfolio] = useState([]);
   const [pastRecords, setPastRecords] = useState([]);
@@ -54,7 +61,12 @@ function Portfolio() {
 
   const fetchStockPrices = async () => {
     try {
-      const symbols = portfolio.map((stock) => stock.symbol).join(",");
+      const symbols = portfolio
+        .map((stock) => {
+          const exchangePrefix = exchangePrefixMap[stock.exchange] || "";
+          return `${stock.symbol}${exchangePrefix}`;
+        })
+        .join(",");
       const response = await axios.get(`${API_URL}/quote/${symbols}`, {
         params: {
           apikey: API_KEY,
@@ -148,6 +160,7 @@ function Portfolio() {
 
   const portfolioColumns = [
     { key: "symbol", label: "Symbol" },
+    { key: "exchange", label: "Exchange" },
     { key: "quantity", label: "Quantity" },
     {
       key: "price",
