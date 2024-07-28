@@ -43,6 +43,13 @@ function StockTransactionForm({
     </div>
   );
 
+  const exchangeOptions = [
+    { value: "NSE", label: "NSE (India)" },
+    { value: "BSE", label: "BSE (India)" },
+    { value: "NYSE", label: "NYSE (US)" },
+    { value: "NASDAQ", label: "NASDAQ (US)" },
+  ];
+
   const defaultFields = [
     { name: "symbol", label: "Stock Symbol", type: "text" },
     { name: "quantity", label: "Quantity", type: "number" },
@@ -56,6 +63,25 @@ function StockTransactionForm({
     <form onSubmit={handleSubmit} className="p-4 bg-card rounded-lg shadow-lg">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {fieldsToRender.map(renderField)}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-text-secondary">
+          Exchange
+        </label>
+        <select
+          name="exchange"
+          value={formData.exchange || ""}
+          onChange={handleInputChange}
+          className="mt-1 block w-full bg-background text-text-primary border border-border rounded p-2"
+          required
+        >
+          <option value="">Select Exchange</option>
+          {exchangeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </div>
       <motion.button
         whileHover={{ scale: 1.05 }}

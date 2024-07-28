@@ -1,20 +1,43 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import EditStockForm from "../components/EditStockForm";
+import PortfolioSummary from "../components/PortfolioSummary";
 import StockTransactionForm from "../components/StockTransactionForm";
 import SortableTable from "../components/SortableTable";
 import { motion } from "framer-motion";
-import { FaMoneyBillWave, FaPlusCircle, FaTrash } from "react-icons/fa";
+import { FaEdit, FaMoneyBillWave, FaPlusCircle, FaTrash } from "react-icons/fa";
+
+const API_KEY = "RlbWU8cx7cbRW4fGZqNhKElV8Z1f1BEd";
+const API_URL = "https://financialmodelingprep.com/api/v3";
+
+const exchangePrefixMap = {
+  NSE: ".NS",
+  BSE: ".BO",
+  NYSE: "",
+  NASDAQ: "",
+};
 
 function Portfolio() {
   const [portfolio, setPortfolio] = useState([]);
   const [pastRecords, setPastRecords] = useState([]);
   const [sellStock, setSellStock] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingStock, setEditingStock] = useState(null);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [stockPrices, setStockPrices] = useState({});
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [apiLimitReached, setApiLimitReached] = useState(false);
 
   useEffect(() => {
     const savedPortfolio = localStorage.getItem("portfolio");
     const savedPastRecords = localStorage.getItem("pastRecords");
+    const cachedPrices = localStorage.getItem("stockPrices");
     if (savedPortfolio) setPortfolio(JSON.parse(savedPortfolio));
     if (savedPastRecords) setPastRecords(JSON.parse(savedPastRecords));
+    if (cachedPrices) {
+      setStockPrices(JSON.parse(cachedPrices));
+      setLastUpdated(new Date(localStorage.getItem("lastUpdated")));
+    }
   }, []);
 
   useEffect(() => {
@@ -22,14 +45,49 @@ function Portfolio() {
     localStorage.setItem("pastRecords", JSON.stringify(pastRecords));
   }, [portfolio, pastRecords]);
 
+  useEffect(() => {
+    localStorage.setItem("stockPrices", JSON.stringify(stockPrices));
+    localStorage.setItem("lastUpdated", lastUpdated);
+  }, [stockPrices, lastUpdated]);
+
   const addStock = (stock) => {
     setPortfolio([...portfolio, { ...stock, id: Date.now() }]);
     setShowAddForm(false);
   };
 
   const getCurrentPrice = (symbol) => {
-    // Placeholder function
-    return Math.random() * 100 + 50;
+    return stockPrices[symbol] || 0;
+  };
+
+  const fetchStockPrices = async () => {
+    try {
+      const symbols = portfolio
+        .map((stock) => {
+          const exchangePrefix = exchangePrefixMap[stock.exchange] || "";
+          return `${stock.symbol}${exchangePrefix}`;
+        })
+        .join(",");
+      const response = await axios.get(`${API_URL}/quote/${symbols}`, {
+        params: {
+          apikey: API_KEY,
+        },
+      });
+
+      const quotes = response.data;
+      if (quotes && Array.isArray(quotes)) {
+        const prices = {};
+        quotes.forEach((quote) => {
+          prices[quote.symbol] = quote.price;
+        });
+        setStockPrices(prices);
+        setLastUpdated(new Date());
+      }
+    } catch (error) {
+      console.error("Error fetching stock prices:", error);
+      if (error.response && error.response.status === 429) {
+        setApiLimitReached(true);
+      }
+    }
   };
 
   const calculateDaysHeld = (purchaseDate, sellDate = new Date()) => {
@@ -40,6 +98,30 @@ function Portfolio() {
 
   const deleteStock = (id) => {
     setPortfolio(portfolio.filter((stock) => stock.id !== id));
+  };
+
+  const deletePastRecord = (id) => {
+    setPastRecords(pastRecords.filter((record) => record.id !== id));
+  };
+
+  const handleEditStock = (updatedStock) => {
+    setPortfolio(
+      portfolio.map((stock) =>
+        stock.id === updatedStock.id ? { ...stock, ...updatedStock } : stock
+      )
+    );
+    setEditingStock(null);
+  };
+
+  const handleEditRecord = (updatedRecord) => {
+    setPastRecords(
+      pastRecords.map((record) =>
+        record.id === updatedRecord.id
+          ? { ...record, ...updatedRecord }
+          : record
+      )
+    );
+    setEditingRecord(null);
   };
 
   const handleSellStock = (stock, sellPrice, sellQuantity, sellDate) => {
@@ -78,6 +160,7 @@ function Portfolio() {
 
   const portfolioColumns = [
     { key: "symbol", label: "Symbol" },
+    { key: "exchange", label: "Exchange" },
     { key: "quantity", label: "Quantity" },
     {
       key: "price",
@@ -224,12 +307,41 @@ function Portfolio() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8 text-primary">Your Portfolio</h1>
-
+      <PortfolioSummary
+        portfolio={portfolio}
+        pastRecords={pastRecords}
+        getCurrentPrice={getCurrentPrice}
+      />
+      <div className="mb-4">
+        <button
+          onClick={fetchStockPrices}
+          disabled={apiLimitReached}
+          className="bg-primary text-background px-4 py-2 rounded hover:bg-opacity-90 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Refresh Stock Prices
+        </button>
+        {lastUpdated && (
+          <span className="ml-4 text-text-secondary">
+            Last updated: {lastUpdated.toLocaleString()}
+          </span>
+        )}
+        {apiLimitReached && (
+          <span className="ml-4 text-loss">
+            API limit reached. Please try again later.
+          </span>
+        )}
+      </div>
       <SortableTable
         columns={portfolioColumns}
         data={portfolio}
         actions={(stock) => (
           <>
+            <button
+              onClick={() => setEditingStock(stock)}
+              className="text-primary hover:text-secondary mr-2"
+            >
+              <FaEdit />
+            </button>
             <button
               onClick={() => setSellStock(stock)}
               className="text-secondary hover:text-primary mr-2"
@@ -245,7 +357,19 @@ function Portfolio() {
           </>
         )}
         renderExpandedRow={(stock) =>
-          sellStock && sellStock.id === stock.id && renderSellForm(stock)
+          editingStock && editingStock.id === stock.id ? (
+            <tr>
+              <td colSpan={portfolioColumns.length + 1}>
+                <EditStockForm
+                  stock={editingStock}
+                  onSubmit={handleEditStock}
+                  onCancel={() => setEditingStock(null)}
+                />
+              </td>
+            </tr>
+          ) : (
+            sellStock && sellStock.id === stock.id && renderSellForm(stock)
+          )
         }
       />
 
@@ -287,7 +411,41 @@ function Portfolio() {
       <h2 className="text-2xl font-bold mt-12 mb-4 text-primary">
         Past Records
       </h2>
-      <SortableTable columns={pastRecordsColumns} data={pastRecords} />
+      <SortableTable
+        columns={pastRecordsColumns}
+        data={pastRecords}
+        actions={(record) => (
+          <>
+            <button
+              onClick={() => setEditingRecord(record)}
+              className="text-primary hover:text-secondary mr-2"
+            >
+              <FaEdit />
+            </button>
+            <button
+              onClick={() => deletePastRecord(record.id)}
+              className="text-loss hover:text-primary"
+            >
+              <FaTrash />
+            </button>
+          </>
+        )}
+        renderExpandedRow={(stock) =>
+          editingStock && editingStock.id === stock.id ? (
+            <tr>
+              <td colSpan={portfolioColumns.length + 1}>
+                <EditStockForm
+                  stock={editingStock}
+                  onSubmit={handleEditStock}
+                  onCancel={() => setEditingStock(null)}
+                />
+              </td>
+            </tr>
+          ) : (
+            sellStock && sellStock.id === stock.id && renderSellForm(stock)
+          )
+        }
+      />
     </div>
   );
 }
