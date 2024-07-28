@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import EditStockForm from "../components/EditStockForm";
+import PortfolioSummary from "../components/PortfolioSummary";
 import StockTransactionForm from "../components/StockTransactionForm";
 import SortableTable from "../components/SortableTable";
 import { motion } from "framer-motion";
@@ -251,7 +252,11 @@ function Portfolio() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8 text-primary">Your Portfolio</h1>
-
+      <PortfolioSummary
+        portfolio={portfolio}
+        pastRecords={pastRecords}
+        getCurrentPrice={getCurrentPrice}
+      />
       <SortableTable
         columns={portfolioColumns}
         data={portfolio}
