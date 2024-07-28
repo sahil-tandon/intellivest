@@ -7,10 +7,10 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
     0
   );
 
-  const currentPortfolioValue = portfolio.reduce(
-    (total, stock) => total + stock.quantity * getCurrentPrice(stock.symbol),
-    0
-  );
+  const currentPortfolioValue = portfolio.reduce((total, stock) => {
+    const currentPrice = getCurrentPrice(stock.symbol);
+    return total + stock.quantity * (currentPrice || 0);
+  }, 0);
 
   const totalUnrealizedProfitLoss = currentPortfolioValue - totalInvestedAmount;
   const totalUnrealizedProfitLossPercentage =
@@ -18,15 +18,20 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
       ? (totalUnrealizedProfitLoss / totalInvestedAmount) * 100
       : 0;
 
-  const portfolioPerformance = portfolio.map((stock) => ({
-    ...stock,
-    currentPrice: getCurrentPrice(stock.symbol),
-    profitLoss: (getCurrentPrice(stock.symbol) - stock.price) * stock.quantity,
-    profitLossPercentage:
+  const portfolioPerformance = portfolio.map((stock) => {
+    const currentPrice = getCurrentPrice(stock.symbol);
+    const profitLoss = (currentPrice - stock.price) * stock.quantity;
+    const profitLossPercentage =
       stock.price !== 0
-        ? ((getCurrentPrice(stock.symbol) - stock.price) / stock.price) * 100
-        : 0,
-  }));
+        ? ((currentPrice - stock.price) / stock.price) * 100
+        : 0;
+    return {
+      ...stock,
+      currentPrice: currentPrice || 0,
+      profitLoss: currentPrice ? profitLoss : 0,
+      profitLossPercentage: currentPrice ? profitLossPercentage : 0,
+    };
+  });
 
   const topPerformingStock =
     portfolioPerformance.length > 0

@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import EditStockForm from "../components/EditStockForm";
 import PortfolioSummary from "../components/PortfolioSummary";
 import StockTransactionForm from "../components/StockTransactionForm";
 import SortableTable from "../components/SortableTable";
 import { motion } from "framer-motion";
 import { FaEdit, FaMoneyBillWave, FaPlusCircle, FaTrash } from "react-icons/fa";
+
+const API_KEY = "RlbWU8cx7cbRW4fGZqNhKElV8Z1f1BEd";
+const API_URL = "https://financialmodelingprep.com/api/v3";
 
 function Portfolio() {
   const [portfolio, setPortfolio] = useState([]);
@@ -13,6 +17,9 @@ function Portfolio() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingStock, setEditingStock] = useState(null);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [stockPrices, setStockPrices] = useState({});
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [apiLimitReached, setApiLimitReached] = useState(false);
 
   useEffect(() => {
     const savedPortfolio = localStorage.getItem("portfolio");
@@ -32,8 +39,33 @@ function Portfolio() {
   };
 
   const getCurrentPrice = (symbol) => {
-    // Placeholder function
-    return Math.random() * 100 + 50;
+    return stockPrices[symbol] || 0;
+  };
+
+  const fetchStockPrices = async () => {
+    try {
+      const symbols = portfolio.map((stock) => stock.symbol).join(",");
+      const response = await axios.get(`${API_URL}/quote/${symbols}`, {
+        params: {
+          apikey: API_KEY,
+        },
+      });
+
+      const quotes = response.data;
+      if (quotes && Array.isArray(quotes)) {
+        const prices = {};
+        quotes.forEach((quote) => {
+          prices[quote.symbol] = quote.price;
+        });
+        setStockPrices(prices);
+        setLastUpdated(new Date());
+      }
+    } catch (error) {
+      console.error("Error fetching stock prices:", error);
+      if (error.response && error.response.status === 429) {
+        setApiLimitReached(true);
+      }
+    }
   };
 
   const calculateDaysHeld = (purchaseDate, sellDate = new Date()) => {
@@ -257,6 +289,25 @@ function Portfolio() {
         pastRecords={pastRecords}
         getCurrentPrice={getCurrentPrice}
       />
+      <div className="mb-4">
+        <button
+          onClick={fetchStockPrices}
+          disabled={apiLimitReached}
+          className="bg-primary text-background px-4 py-2 rounded hover:bg-opacity-90 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Refresh Stock Prices
+        </button>
+        {lastUpdated && (
+          <span className="ml-4 text-text-secondary">
+            Last updated: {lastUpdated.toLocaleString()}
+          </span>
+        )}
+        {apiLimitReached && (
+          <span className="ml-4 text-loss">
+            API limit reached. Please try again later.
+          </span>
+        )}
+      </div>
       <SortableTable
         columns={portfolioColumns}
         data={portfolio}
