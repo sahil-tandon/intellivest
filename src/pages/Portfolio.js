@@ -166,7 +166,7 @@ function Portfolio() {
     {
       key: "price",
       label: "Purchase Price",
-      render: (stock) => `$${Number(stock.price).toFixed(2)}`,
+      render: (stock) => `₹${Number(stock.price).toFixed(2)}`,
     },
     {
       key: "currentPrice",
@@ -227,18 +227,18 @@ function Portfolio() {
     {
       key: "purchasePrice",
       label: "Purchase Price",
-      render: (record) => `$${Number(record.purchasePrice).toFixed(2)}`,
+      render: (record) => `₹${Number(record.purchasePrice).toFixed(2)}`,
     },
     {
       key: "sellPrice",
       label: "Sell Price",
-      render: (record) => `$${Number(record.sellPrice).toFixed(2)}`,
+      render: (record) => `₹${Number(record.sellPrice).toFixed(2)}`,
     },
     {
       key: "totalAmount",
       label: "Total Amount",
       render: (record) =>
-        `$${(record.quantity * Number(record.sellPrice)).toFixed(2)}`,
+        `₹${(record.quantity * Number(record.sellPrice)).toFixed(2)}`,
     },
     {
       key: "profit",

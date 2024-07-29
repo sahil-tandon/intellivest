@@ -67,7 +67,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
         <div className="bg-card-dark p-4 rounded-lg">
           <p className="text-text-secondary mb-2">Total Invested Amount</p>
           <p className="text-3xl font-bold">
-            ${totalInvestedAmount.toFixed(2)}
+            ₹{totalInvestedAmount.toFixed(2)}
           </p>
         </div>
         <div className="bg-card-dark p-4 rounded-lg">
@@ -77,7 +77,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
               totalUnrealizedProfitLoss >= 0 ? "text-profit" : "text-loss"
             }`}
           >
-            ${totalUnrealizedProfitLoss.toFixed(2)} (
+            ₹{totalUnrealizedProfitLoss.toFixed(2)} (
             {totalUnrealizedProfitLossPercentage.toFixed(2)}%)
           </p>
         </div>
@@ -88,7 +88,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
               totalRealizedProfitLoss >= 0 ? "text-profit" : "text-loss"
             }`}
           >
-            ${totalRealizedProfitLoss.toFixed(2)}
+            ₹{totalRealizedProfitLoss.toFixed(2)}
           </p>
         </div>
         {topPerformingStock && (
