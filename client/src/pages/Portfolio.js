@@ -7,8 +7,7 @@ import SortableTable from "../components/SortableTable";
 import { motion } from "framer-motion";
 import { FaEdit, FaMoneyBillWave, FaPlusCircle, FaTrash } from "react-icons/fa";
 
-const API_KEY = "RlbWU8cx7cbRW4fGZqNhKElV8Z1f1BEd";
-const API_URL = "https://financialmodelingprep.com/api/v3";
+const API_URL = "http://localhost:5001/api";
 
 const exchangePrefixMap = {
   NSE: ".NS",
@@ -61,32 +60,18 @@ function Portfolio() {
 
   const fetchStockPrices = async () => {
     try {
-      const symbols = portfolio
-        .map((stock) => {
-          const exchangePrefix = exchangePrefixMap[stock.exchange] || "";
-          return `${stock.symbol}${exchangePrefix}`;
-        })
-        .join(",");
-      const response = await axios.get(`${API_URL}/quote/${symbols}`, {
+      const symbols = portfolio.map((stock) => stock.symbol).join(",");
+      const response = await axios.get(`${API_URL}/stock-prices`, {
         params: {
-          apikey: API_KEY,
+          symbols: symbols,
         },
       });
 
-      const quotes = response.data;
-      if (quotes && Array.isArray(quotes)) {
-        const prices = {};
-        quotes.forEach((quote) => {
-          prices[quote.symbol] = quote.price;
-        });
-        setStockPrices(prices);
-        setLastUpdated(new Date());
-      }
+      const prices = response.data;
+      setStockPrices(prices);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error("Error fetching stock prices:", error);
-      if (error.response && error.response.status === 429) {
-        setApiLimitReached(true);
-      }
     }
   };
 
