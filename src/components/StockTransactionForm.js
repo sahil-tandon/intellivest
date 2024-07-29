@@ -46,8 +46,6 @@ function StockTransactionForm({
   const exchangeOptions = [
     { value: "NSE", label: "NSE (India)" },
     { value: "BSE", label: "BSE (India)" },
-    { value: "NYSE", label: "NYSE (US)" },
-    { value: "NASDAQ", label: "NASDAQ (US)" },
   ];
 
   const defaultFields = [

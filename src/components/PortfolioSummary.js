@@ -1,5 +1,6 @@
 import React from "react";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
+import { formatIndianRupee } from "../utils/currencyFormatting";
 
 function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
   const totalInvestedAmount = portfolio.reduce(
@@ -8,7 +9,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
   );
 
   const currentPortfolioValue = portfolio.reduce((total, stock) => {
-    const currentPrice = getCurrentPrice(stock.symbol);
+    const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
     return total + stock.quantity * (currentPrice || 0);
   }, 0);
 
@@ -19,7 +20,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
       : 0;
 
   const portfolioPerformance = portfolio.map((stock) => {
-    const currentPrice = getCurrentPrice(stock.symbol);
+    const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
     const profitLoss = (currentPrice - stock.price) * stock.quantity;
     const profitLossPercentage =
       stock.price !== 0
@@ -67,7 +68,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
         <div className="bg-card-dark p-4 rounded-lg">
           <p className="text-text-secondary mb-2">Total Invested Amount</p>
           <p className="text-3xl font-bold">
-            ${totalInvestedAmount.toFixed(2)}
+            ₹{formatIndianRupee(totalInvestedAmount.toFixed(2))}
           </p>
         </div>
         <div className="bg-card-dark p-4 rounded-lg">
@@ -77,7 +78,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
               totalUnrealizedProfitLoss >= 0 ? "text-profit" : "text-loss"
             }`}
           >
-            ${totalUnrealizedProfitLoss.toFixed(2)} (
+            ₹{formatIndianRupee(totalUnrealizedProfitLoss.toFixed(2))} (
             {totalUnrealizedProfitLossPercentage.toFixed(2)}%)
           </p>
         </div>
@@ -88,7 +89,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
               totalRealizedProfitLoss >= 0 ? "text-profit" : "text-loss"
             }`}
           >
-            ${totalRealizedProfitLoss.toFixed(2)}
+            ₹{formatIndianRupee(totalRealizedProfitLoss.toFixed(2))}
           </p>
         </div>
         {topPerformingStock && (
