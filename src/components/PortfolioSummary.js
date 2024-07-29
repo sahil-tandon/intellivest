@@ -8,7 +8,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
   );
 
   const currentPortfolioValue = portfolio.reduce((total, stock) => {
-    const currentPrice = getCurrentPrice(stock.symbol);
+    const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
     return total + stock.quantity * (currentPrice || 0);
   }, 0);
 
@@ -19,7 +19,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
       : 0;
 
   const portfolioPerformance = portfolio.map((stock) => {
-    const currentPrice = getCurrentPrice(stock.symbol);
+    const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
     const profitLoss = (currentPrice - stock.price) * stock.quantity;
     const profitLossPercentage =
       stock.price !== 0

@@ -7,15 +7,8 @@ import SortableTable from "../components/SortableTable";
 import { motion } from "framer-motion";
 import { FaEdit, FaMoneyBillWave, FaPlusCircle, FaTrash } from "react-icons/fa";
 
-const API_KEY = "RlbWU8cx7cbRW4fGZqNhKElV8Z1f1BEd";
-const API_URL = "https://financialmodelingprep.com/api/v3";
-
-const exchangePrefixMap = {
-  NSE: ".NS",
-  BSE: ".BO",
-  NYSE: "",
-  NASDAQ: "",
-};
+const API_KEY = "70e08cfafcmshcdf8d1a000005e1p17818djsn9a3b752b554c";
+const API_HOST = "apidojo-yahoo-finance-v1.p.rapidapi.com";
 
 function Portfolio() {
   const [portfolio, setPortfolio] = useState([]);
@@ -55,29 +48,37 @@ function Portfolio() {
     setShowAddForm(false);
   };
 
-  const getCurrentPrice = (symbol) => {
-    return stockPrices[symbol] || 0;
+  const getCurrentPrice = (symbol, exchange) => {
+    const fullSymbol = `${symbol}.${exchange === "NSE" ? "NS" : "BO"}`;
+    return stockPrices[fullSymbol] || 0;
   };
 
   const fetchStockPrices = async () => {
     try {
       const symbols = portfolio
-        .map((stock) => {
-          const exchangePrefix = exchangePrefixMap[stock.exchange] || "";
-          return `${stock.symbol}${exchangePrefix}`;
-        })
+        .map(
+          (stock) => `${stock.symbol}.${stock.exchange === "NSE" ? "NS" : "BO"}`
+        )
         .join(",");
-      const response = await axios.get(`${API_URL}/quote/${symbols}`, {
-        params: {
-          apikey: API_KEY,
-        },
-      });
+      const region = "IN";
 
-      const quotes = response.data;
+      const options = {
+        method: "GET",
+        url: "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/v2/get-quotes",
+        params: { region, symbols },
+        headers: {
+          "x-rapidapi-key": API_KEY,
+          "x-rapidapi-host": API_HOST,
+        },
+      };
+
+      const response = await axios.request(options);
+      const quotes = response.data.quoteResponse.result;
+
       if (quotes && Array.isArray(quotes)) {
         const prices = {};
         quotes.forEach((quote) => {
-          prices[quote.symbol] = quote.price;
+          prices[quote.symbol] = quote.regularMarketPrice;
         });
         setStockPrices(prices);
         setLastUpdated(new Date());
@@ -170,24 +171,28 @@ function Portfolio() {
     {
       key: "currentPrice",
       label: "Current Price",
-      render: (stock) => `$${getCurrentPrice(stock.symbol).toFixed(2)}`,
+      render: (stock) =>
+        `₹${getCurrentPrice(stock.symbol, stock.exchange).toFixed(2)}`,
     },
     {
       key: "totalValue",
       label: "Total Value",
       render: (stock) =>
-        `$${(stock.quantity * getCurrentPrice(stock.symbol)).toFixed(2)}`,
+        `₹${(
+          stock.quantity * getCurrentPrice(stock.symbol, stock.exchange)
+        ).toFixed(2)}`,
     },
     {
       key: "profit",
       label: "Profit",
       render: (stock) => {
         const profit =
-          (getCurrentPrice(stock.symbol) - Number(stock.price)) *
+          (getCurrentPrice(stock.symbol, stock.exchange) -
+            Number(stock.price)) *
           stock.quantity;
         return (
           <span className={profit >= 0 ? "text-profit" : "text-loss"}>
-            ${profit.toFixed(2)}
+            ₹{profit.toFixed(2)}
           </span>
         );
       },
@@ -197,7 +202,8 @@ function Portfolio() {
       label: "Profit %",
       render: (stock) => {
         const profitPercentage =
-          ((getCurrentPrice(stock.symbol) - Number(stock.price)) /
+          ((getCurrentPrice(stock.symbol, stock.exchange) -
+            Number(stock.price)) /
             Number(stock.price)) *
           100;
         return (
@@ -310,7 +316,9 @@ function Portfolio() {
       <PortfolioSummary
         portfolio={portfolio}
         pastRecords={pastRecords}
-        getCurrentPrice={getCurrentPrice}
+        getCurrentPrice={(symbol, exchange) =>
+          getCurrentPrice(symbol, exchange)
+        }
       />
       <div className="mb-4">
         <button
