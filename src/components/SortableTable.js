@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+import { formatIndianRupee } from "../utils/currencyFormatting";
 
 function SortableTable({ columns, data, actions, renderExpandedRow }) {
   const [sortConfig, setSortConfig] = useState({
@@ -44,6 +45,19 @@ function SortableTable({ columns, data, actions, renderExpandedRow }) {
     return <FaSort />;
   };
 
+  const renderCell = (item, column) => {
+    if (column.render) {
+      return column.render(item);
+    }
+
+    const value = item[column.key];
+    if (typeof value === "number") {
+      return `${formatIndianRupee(value)}`;
+    }
+
+    return value;
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left text-text-primary">
@@ -70,7 +84,7 @@ function SortableTable({ columns, data, actions, renderExpandedRow }) {
                     key={column.key}
                     className={`px-6 py-4 ${column.className || ""}`}
                   >
-                    {column.render ? column.render(item) : item[column.key]}
+                    {renderCell(item, column)}
                   </td>
                 ))}
                 {actions && <td className="px-6 py-4">{actions(item)}</td>}

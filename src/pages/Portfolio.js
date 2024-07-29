@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import EditStockForm from "../components/EditStockForm";
+import { formatIndianRupee } from "../utils/currencyFormatting";
 import PortfolioSummary from "../components/PortfolioSummary";
 import StockTransactionForm from "../components/StockTransactionForm";
 import SortableTable from "../components/SortableTable";
@@ -166,21 +167,26 @@ function Portfolio() {
     {
       key: "price",
       label: "Purchase Price",
-      render: (stock) => `₹${Number(stock.price).toFixed(2)}`,
+      render: (stock) =>
+        `₹${formatIndianRupee(Number(stock.price).toFixed(2))}`,
     },
     {
       key: "currentPrice",
       label: "Current Price",
       render: (stock) =>
-        `₹${getCurrentPrice(stock.symbol, stock.exchange).toFixed(2)}`,
+        `₹${formatIndianRupee(
+          getCurrentPrice(stock.symbol, stock.exchange).toFixed(2)
+        )}`,
     },
     {
       key: "totalValue",
       label: "Total Value",
       render: (stock) =>
-        `₹${(
-          stock.quantity * getCurrentPrice(stock.symbol, stock.exchange)
-        ).toFixed(2)}`,
+        `₹${formatIndianRupee(
+          (
+            stock.quantity * getCurrentPrice(stock.symbol, stock.exchange)
+          ).toFixed(2)
+        )}`,
     },
     {
       key: "profit",
@@ -192,7 +198,7 @@ function Portfolio() {
           stock.quantity;
         return (
           <span className={profit >= 0 ? "text-profit" : "text-loss"}>
-            ₹{profit.toFixed(2)}
+            ₹{formatIndianRupee(profit.toFixed(2))}
           </span>
         );
       },
