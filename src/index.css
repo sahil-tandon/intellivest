@@ -35,8 +35,21 @@ code {
   @apply bg-opacity-75;
 }
 
+a:focus,
+button:focus {
+  @apply ring-2 ring-primary ring-opacity-50;
+}
+
 *:focus {
   @apply outline-none ring-2 ring-primary ring-opacity-50;
+}
+
+*:focus-visible {
+  @apply ring-2 ring-primary ring-opacity-50;
+}
+
+*:focus:not(:focus-visible) {
+  @apply ring-0 outline-none;
 }
 
 html {
