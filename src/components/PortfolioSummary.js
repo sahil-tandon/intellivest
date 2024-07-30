@@ -8,56 +8,67 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
     0
   );
 
+  const hasUnavailablePrice = portfolio.some(
+    (stock) => getCurrentPrice(stock.symbol, stock.exchange) === null
+  );
+
   const currentPortfolioValue = portfolio.reduce((total, stock) => {
     const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
-    return total + stock.quantity * (currentPrice || 0);
+    return currentPrice !== null
+      ? total + stock.quantity * currentPrice
+      : total;
   }, 0);
 
-  const totalUnrealizedProfitLoss = currentPortfolioValue - totalInvestedAmount;
-  const totalUnrealizedProfitLossPercentage =
-    totalInvestedAmount !== 0
-      ? (totalUnrealizedProfitLoss / totalInvestedAmount) * 100
-      : 0;
-
-  const portfolioPerformance = portfolio.map((stock) => {
-    const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
-    const profitLoss = (currentPrice - stock.price) * stock.quantity;
-    const profitLossPercentage =
-      stock.price !== 0
-        ? ((currentPrice - stock.price) / stock.price) * 100
-        : 0;
-    return {
-      ...stock,
-      currentPrice: currentPrice || 0,
-      profitLoss: currentPrice ? profitLoss : 0,
-      profitLossPercentage: currentPrice ? profitLossPercentage : 0,
-    };
-  });
-
-  const topPerformingStock =
-    portfolioPerformance.length > 0
-      ? portfolioPerformance.reduce(
-          (top, stock) =>
-            stock.profitLossPercentage > top.profitLossPercentage ? stock : top,
-          portfolioPerformance[0]
-        )
-      : null;
-
-  const worstPerformingStock =
-    portfolioPerformance.length > 0
-      ? portfolioPerformance.reduce(
-          (worst, stock) =>
-            stock.profitLossPercentage < worst.profitLossPercentage
-              ? stock
-              : worst,
-          portfolioPerformance[0]
-        )
-      : null;
+  const totalUnrealizedProfitLoss = hasUnavailablePrice
+    ? "-"
+    : currentPortfolioValue - totalInvestedAmount;
+  const totalUnrealizedProfitLossPercentage = hasUnavailablePrice
+    ? "-"
+    : totalInvestedAmount !== 0
+    ? ((currentPortfolioValue - totalInvestedAmount) / totalInvestedAmount) *
+      100
+    : 0;
 
   const totalRealizedProfitLoss = pastRecords.reduce(
     (total, record) => total + record.profit,
     0
   );
+
+  const portfolioPerformance = portfolio.map((stock) => {
+    const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
+    return {
+      ...stock,
+      currentPrice,
+      profitLoss:
+        currentPrice !== null
+          ? (currentPrice - stock.price) * stock.quantity
+          : "-",
+      profitLossPercentage:
+        currentPrice !== null
+          ? ((currentPrice - stock.price) / stock.price) * 100
+          : "-",
+    };
+  });
+
+  const topPerformingStock = portfolioPerformance
+    .filter((stock) => typeof stock.profitLossPercentage === "number")
+    .reduce(
+      (top, stock) =>
+        stock.profitLossPercentage > top.profitLossPercentage ? stock : top,
+      portfolioPerformance.find(
+        (stock) => typeof stock.profitLossPercentage === "number"
+      ) || null
+    );
+
+  const worstPerformingStock = portfolioPerformance
+    .filter((stock) => typeof stock.profitLossPercentage === "number")
+    .reduce(
+      (worst, stock) =>
+        stock.profitLossPercentage < worst.profitLossPercentage ? stock : worst,
+      portfolioPerformance.find(
+        (stock) => typeof stock.profitLossPercentage === "number"
+      ) || null
+    );
 
   return (
     <div className="bg-card p-6 rounded-lg shadow-lg mb-8">
@@ -78,8 +89,12 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
               totalUnrealizedProfitLoss >= 0 ? "text-profit" : "text-loss"
             }`}
           >
-            ₹{formatIndianRupee(totalUnrealizedProfitLoss.toFixed(2))} (
-            {totalUnrealizedProfitLossPercentage.toFixed(2)}%)
+            {totalUnrealizedProfitLoss === "-"
+              ? "-"
+              : `₹${formatIndianRupee(totalUnrealizedProfitLoss)}`}
+            {totalUnrealizedProfitLossPercentage === "-"
+              ? ""
+              : ` (${totalUnrealizedProfitLossPercentage.toFixed(2)}%)`}
           </p>
         </div>
         <div className="bg-card-dark p-4 rounded-lg">
@@ -100,7 +115,9 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
               <p className="text-2xl font-bold">{topPerformingStock.symbol}</p>
             </div>
             <p className="text-profit">
-              {topPerformingStock.profitLossPercentage.toFixed(2)}%
+              {typeof topPerformingStock.profitLossPercentage === "number"
+                ? `${topPerformingStock.profitLossPercentage.toFixed(2)}%`
+                : "-"}
             </p>
           </div>
         )}
@@ -114,7 +131,9 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
               </p>
             </div>
             <p className="text-loss">
-              {worstPerformingStock.profitLossPercentage.toFixed(2)}%
+              {typeof worstPerformingStock.profitLossPercentage === "number"
+                ? `${worstPerformingStock.profitLossPercentage.toFixed(2)}%`
+                : "-"}
             </p>
           </div>
         )}

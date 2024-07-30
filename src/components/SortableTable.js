@@ -51,8 +51,11 @@ function SortableTable({ columns, data, actions, renderExpandedRow }) {
     }
 
     const value = item[column.key];
+    if (value === "-") {
+      return value;
+    }
     if (typeof value === "number") {
-      return `${formatIndianRupee(value)}`;
+      return `₹${formatIndianRupee(value)}`;
     }
 
     return value;

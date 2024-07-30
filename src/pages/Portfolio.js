@@ -51,7 +51,7 @@ function Portfolio() {
 
   const getCurrentPrice = (symbol, exchange) => {
     const fullSymbol = `${symbol}.${exchange === "NSE" ? "NS" : "BO"}`;
-    return stockPrices[fullSymbol] || 0;
+    return stockPrices[fullSymbol] || null;
   };
 
   const fetchStockPrices = async () => {
@@ -78,8 +78,12 @@ function Portfolio() {
 
       if (quotes && Array.isArray(quotes)) {
         const prices = {};
-        quotes.forEach((quote) => {
-          prices[quote.symbol] = quote.regularMarketPrice;
+        portfolio.forEach((stock) => {
+          const fullSymbol = `${stock.symbol}.${
+            stock.exchange === "NSE" ? "NS" : "BO"
+          }`;
+          const quote = quotes.find((q) => q.symbol === fullSymbol);
+          prices[fullSymbol] = quote ? quote.regularMarketPrice : null;
         });
         setStockPrices(prices);
         setLastUpdated(new Date());
@@ -173,29 +177,28 @@ function Portfolio() {
     {
       key: "currentPrice",
       label: "Current Price",
-      render: (stock) =>
-        `₹${formatIndianRupee(
-          getCurrentPrice(stock.symbol, stock.exchange).toFixed(2)
-        )}`,
+      render: (stock) => {
+        const price = getCurrentPrice(stock.symbol, stock.exchange);
+        return price !== null ? `₹${formatIndianRupee(price.toFixed(2))}` : "-";
+      },
     },
     {
       key: "totalValue",
       label: "Total Value",
-      render: (stock) =>
-        `₹${formatIndianRupee(
-          (
-            stock.quantity * getCurrentPrice(stock.symbol, stock.exchange)
-          ).toFixed(2)
-        )}`,
+      render: (stock) => {
+        const price = getCurrentPrice(stock.symbol, stock.exchange);
+        return price !== null
+          ? `₹${formatIndianRupee((stock.quantity * price).toFixed(2))}`
+          : "-";
+      },
     },
     {
       key: "profit",
       label: "Profit",
       render: (stock) => {
-        const profit =
-          (getCurrentPrice(stock.symbol, stock.exchange) -
-            Number(stock.price)) *
-          stock.quantity;
+        const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
+        if (currentPrice === null) return "-";
+        const profit = (currentPrice - Number(stock.price)) * stock.quantity;
         return (
           <span className={profit >= 0 ? "text-profit" : "text-loss"}>
             ₹{formatIndianRupee(profit.toFixed(2))}
@@ -207,11 +210,10 @@ function Portfolio() {
       key: "profitPercentage",
       label: "Profit %",
       render: (stock) => {
+        const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
+        if (currentPrice === null) return "-";
         const profitPercentage =
-          ((getCurrentPrice(stock.symbol, stock.exchange) -
-            Number(stock.price)) /
-            Number(stock.price)) *
-          100;
+          ((currentPrice - Number(stock.price)) / Number(stock.price)) * 100;
         return (
           <span className={profitPercentage >= 0 ? "text-profit" : "text-loss"}>
             {profitPercentage.toFixed(2)}%
