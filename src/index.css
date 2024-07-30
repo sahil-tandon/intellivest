@@ -9,9 +9,76 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  @apply bg-background text-text-primary;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary bg-opacity-50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-opacity-75;
+}
+
+*:focus {
+  @apply outline-none ring-2 ring-primary ring-opacity-50;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  @apply bg-primary bg-opacity-25 text-text-primary;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.btn {
+  @apply px-4 py-2 rounded transition duration-200 focus:ring-2 focus:ring-opacity-50;
+}
+
+.btn-primary {
+  @apply bg-button-primary text-white hover:bg-opacity-90 focus:ring-button-primary;
+}
+
+.btn-secondary {
+  @apply bg-button-secondary text-white hover:bg-opacity-90 focus:ring-button-secondary;
+}
+
+a {
+  @apply text-primary hover:text-hover transition duration-200;
+}
+
+input,
+select,
+textarea {
+  @apply bg-background border border-text-secondary rounded px-3 py-2 focus:border-primary transition duration-200;
 }

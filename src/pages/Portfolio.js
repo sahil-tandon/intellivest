@@ -352,8 +352,8 @@ function Portfolio() {
   );
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8 text-primary">Your Portfolio</h1>
+    <div className="fade-in">
+      <h1 className="text-3xl font-bold mb-8">Your Portfolio</h1>
       <PortfolioSummary
         portfolio={portfolio}
         pastRecords={pastRecords}

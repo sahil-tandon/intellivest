@@ -3,20 +3,29 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "#120c24",
-        primary: "#6366F1",
-        secondary: "#F59E0B",
+        background: "#161029",
+        primary: "#007BFF",
+        secondary: "#FF8C00",
         text: {
           primary: "#E2E8F0",
           secondary: "#94A3B8",
         },
-        profit: "#34D399",
-        loss: "#F87171",
-        card: "#1E1639",
-        border: "#2D3748",
+        profit: "#50C878",
+        loss: "#DC143C",
+        chart: {
+          line: "#87CEEB",
+          gain: "#32CD32",
+          loss: "#FF6347",
+        },
+        highlight: "#FFD700",
+        button: {
+          primary: "#008080",
+          secondary: "#FF8C00",
+        },
+        hover: "#EE82EE",
       },
       boxShadow: {
-        glow: "0 0 10px rgba(99, 102, 241, 0.5)",
+        glow: "0 0 10px rgba(0, 123, 255, 0.5)",
       },
       backdropFilter: {
         none: "none",
