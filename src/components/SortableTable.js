@@ -10,16 +10,31 @@ function SortableTable({ columns, data, actions, renderExpandedRow }) {
 
   const sortedData = React.useMemo(() => {
     if (!sortConfig.key) return data;
+    const column = columns.find((col) => col.key === sortConfig.key);
     return [...data].sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
-        return sortConfig.direction === "ascending" ? -1 : 1;
+      if (a[sortConfig.key] === b[sortConfig.key]) return 0;
+
+      if (a[sortConfig.key] == null || a[sortConfig.key] === "-") return 1;
+      if (b[sortConfig.key] == null || b[sortConfig.key] === "-") return -1;
+
+      if (column.sortType === "number") {
+        return (
+          (Number(a[sortConfig.key]) - Number(b[sortConfig.key])) *
+          (sortConfig.direction === "ascending" ? 1 : -1)
+        );
+      } else if (column.sortType === "date") {
+        return (
+          (new Date(a[sortConfig.key]) - new Date(b[sortConfig.key])) *
+          (sortConfig.direction === "ascending" ? 1 : -1)
+        );
+      } else {
+        return (
+          String(a[sortConfig.key]).localeCompare(String(b[sortConfig.key])) *
+          (sortConfig.direction === "ascending" ? 1 : -1)
+        );
       }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
-        return sortConfig.direction === "ascending" ? 1 : -1;
-      }
-      return 0;
     });
-  }, [data, sortConfig]);
+  }, [data, sortConfig, columns]);
 
   const requestSort = (key) => {
     setSortConfig((prevConfig) => {

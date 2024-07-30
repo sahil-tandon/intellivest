@@ -165,18 +165,20 @@ function Portfolio() {
   };
 
   const portfolioColumns = [
-    { key: "symbol", label: "Symbol" },
-    { key: "exchange", label: "Exchange" },
-    { key: "quantity", label: "Quantity" },
+    { key: "symbol", label: "Symbol", sortType: "string" },
+    { key: "exchange", label: "Exchange", sortType: "string" },
+    { key: "quantity", label: "Quantity", sortType: "number" },
     {
       key: "price",
       label: "Purchase Price",
+      sortType: "number",
       render: (stock) =>
         `₹${formatIndianRupee(Number(stock.price).toFixed(2))}`,
     },
     {
       key: "currentPrice",
       label: "Current Price",
+      sortType: "number",
       render: (stock) => {
         const price = getCurrentPrice(stock.symbol, stock.exchange);
         return price !== null ? `₹${formatIndianRupee(price.toFixed(2))}` : "-";
@@ -185,6 +187,7 @@ function Portfolio() {
     {
       key: "totalValue",
       label: "Total Value",
+      sortType: "number",
       render: (stock) => {
         const price = getCurrentPrice(stock.symbol, stock.exchange);
         return price !== null
@@ -195,6 +198,7 @@ function Portfolio() {
     {
       key: "profit",
       label: "Profit",
+      sortType: "number",
       render: (stock) => {
         const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
         if (currentPrice === null) return "-";
@@ -209,6 +213,7 @@ function Portfolio() {
     {
       key: "profitPercentage",
       label: "Profit %",
+      sortType: "number",
       render: (stock) => {
         const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
         if (currentPrice === null) return "-";
@@ -221,10 +226,11 @@ function Portfolio() {
         );
       },
     },
-    { key: "date", label: "Purchase Date" },
+    { key: "date", label: "Purchase Date", sortType: "date" },
     {
       key: "daysHeld",
       label: "Days Held",
+      sortType: "number",
       render: (stock) => calculateDaysHeld(stock.date),
     },
   ];
