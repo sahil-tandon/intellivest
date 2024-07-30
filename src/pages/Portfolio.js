@@ -172,40 +172,42 @@ function Portfolio() {
       key: "price",
       label: "Purchase Price",
       sortType: "number",
-      render: (stock) =>
-        `₹${formatIndianRupee(Number(stock.price).toFixed(2))}`,
+      render: (value) => `₹${formatIndianRupee(value.toFixed(2))}`,
     },
     {
       key: "currentPrice",
       label: "Current Price",
       sortType: "number",
-      render: (stock) => {
-        const price = getCurrentPrice(stock.symbol, stock.exchange);
-        return price !== null ? `₹${formatIndianRupee(price.toFixed(2))}` : "-";
-      },
+      getValue: (stock) => getCurrentPrice(stock.symbol, stock.exchange),
+      render: (value) =>
+        value !== null ? `₹${formatIndianRupee(value.toFixed(2))}` : "-",
     },
     {
       key: "totalValue",
       label: "Total Value",
       sortType: "number",
-      render: (stock) => {
-        const price = getCurrentPrice(stock.symbol, stock.exchange);
-        return price !== null
-          ? `₹${formatIndianRupee((stock.quantity * price).toFixed(2))}`
-          : "-";
+      getValue: (stock) => {
+        const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
+        return currentPrice !== null ? stock.quantity * currentPrice : null;
       },
+      render: (value) =>
+        value !== null ? `₹${formatIndianRupee(value.toFixed(2))}` : "-",
     },
     {
       key: "profit",
       label: "Profit",
       sortType: "number",
-      render: (stock) => {
+      getValue: (stock) => {
         const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
-        if (currentPrice === null) return "-";
-        const profit = (currentPrice - Number(stock.price)) * stock.quantity;
+        return currentPrice !== null
+          ? (currentPrice - stock.price) * stock.quantity
+          : null;
+      },
+      render: (value) => {
+        if (value === null) return "-";
         return (
-          <span className={profit >= 0 ? "text-profit" : "text-loss"}>
-            ₹{formatIndianRupee(profit.toFixed(2))}
+          <span className={value >= 0 ? "text-profit" : "text-loss"}>
+            ₹{formatIndianRupee(value.toFixed(2))}
           </span>
         );
       },
@@ -214,14 +216,17 @@ function Portfolio() {
       key: "profitPercentage",
       label: "Profit %",
       sortType: "number",
-      render: (stock) => {
+      getValue: (stock) => {
         const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
-        if (currentPrice === null) return "-";
-        const profitPercentage =
-          ((currentPrice - Number(stock.price)) / Number(stock.price)) * 100;
+        return currentPrice !== null
+          ? ((currentPrice - stock.price) / stock.price) * 100
+          : null;
+      },
+      render: (value) => {
+        if (value === null) return "-";
         return (
-          <span className={profitPercentage >= 0 ? "text-profit" : "text-loss"}>
-            {profitPercentage.toFixed(2)}%
+          <span className={value >= 0 ? "text-profit" : "text-loss"}>
+            {value.toFixed(2)}%
           </span>
         );
       },
@@ -231,52 +236,73 @@ function Portfolio() {
       key: "daysHeld",
       label: "Days Held",
       sortType: "number",
-      render: (stock) => calculateDaysHeld(stock.date),
+      getValue: (stock) => calculateDaysHeld(stock.date),
     },
   ];
 
   const pastRecordsColumns = [
-    { key: "symbol", label: "Symbol" },
-    { key: "quantity", label: "Quantity" },
+    { key: "symbol", label: "Symbol", sortType: "string" },
+    { key: "quantity", label: "Quantity", sortType: "number" },
     {
       key: "purchasePrice",
       label: "Purchase Price",
-      render: (record) => `₹${Number(record.purchasePrice).toFixed(2)}`,
+      sortType: "number",
+      render: (value) => `₹${formatIndianRupee(value.toFixed(2))}`,
     },
     {
       key: "sellPrice",
       label: "Sell Price",
-      render: (record) => `₹${Number(record.sellPrice).toFixed(2)}`,
+      sortType: "number",
+      render: (value) => `₹${formatIndianRupee(value.toFixed(2))}`,
     },
     {
       key: "totalAmount",
       label: "Total Amount",
-      render: (record) =>
-        `₹${(record.quantity * Number(record.sellPrice)).toFixed(2)}`,
+      sortType: "number",
+      getValue: (record) => record.quantity * record.sellPrice,
+      render: (value) => `₹${formatIndianRupee(value.toFixed(2))}`,
     },
     {
       key: "profit",
       label: "Profit/Loss",
-      render: (record) => (
-        <span className={record.profit >= 0 ? "text-profit" : "text-loss"}>
-          ${Number(record.profit).toFixed(2)}
-        </span>
-      ),
+      sortType: "number",
+      getValue: (record) => record.profit,
+      render: (value) => {
+        if (value === null) return "-";
+        return (
+          <span className={value >= 0 ? "text-profit" : "text-loss"}>
+            ₹{formatIndianRupee(value.toFixed(2))}
+          </span>
+        );
+      },
     },
     {
       key: "profitPercentage",
       label: "P/L %",
-      render: (record) => (
-        <span
-          className={record.profitPercentage >= 0 ? "text-profit" : "text-loss"}
-        >
-          {Number(record.profitPercentage).toFixed(2)}%
-        </span>
-      ),
+      sortType: "number",
+      getValue: (record) => record.profitPercentage,
+      render: (value) => {
+        if (value === null) return "-";
+        return (
+          <span className={value >= 0 ? "text-profit" : "text-loss"}>
+            {value.toFixed(2)}%
+          </span>
+        );
+      },
     },
-    { key: "purchaseDate", label: "Purchase Date" },
-    { key: "sellDate", label: "Sell Date" },
-    { key: "daysHeld", label: "Days Held" },
+    {
+      key: "purchaseDate",
+      label: "Purchase Date",
+      sortType: "date",
+      render: (value) => new Date(value).toLocaleDateString(),
+    },
+    {
+      key: "sellDate",
+      label: "Sell Date",
+      sortType: "date",
+      render: (value) => new Date(value).toLocaleDateString(),
+    },
+    { key: "daysHeld", label: "Days Held", sortType: "number" },
   ];
 
   const renderSellForm = (stock) => (
