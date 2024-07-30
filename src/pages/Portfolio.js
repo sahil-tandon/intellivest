@@ -237,6 +237,7 @@ function Portfolio() {
       label: "Days Held",
       sortType: "number",
       getValue: (stock) => calculateDaysHeld(stock.date),
+      render: (value) => value,
     },
   ];
 
