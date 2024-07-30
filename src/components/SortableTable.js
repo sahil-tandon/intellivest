@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
-import { formatIndianRupee } from "../utils/currencyFormatting";
 
 function SortableTable({ columns, data, actions, renderExpandedRow }) {
   const [sortConfig, setSortConfig] = useState({
@@ -8,30 +7,31 @@ function SortableTable({ columns, data, actions, renderExpandedRow }) {
     direction: "ascending",
   });
 
-  const sortedData = React.useMemo(() => {
+  const sortedData = useMemo(() => {
     if (!sortConfig.key) return data;
+    const column = columns.find((col) => col.key === sortConfig.key);
     return [...data].sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
-        return sortConfig.direction === "ascending" ? -1 : 1;
-      }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
-        return sortConfig.direction === "ascending" ? 1 : -1;
-      }
+      const aValue = column.getValue ? column.getValue(a) : a[sortConfig.key];
+      const bValue = column.getValue ? column.getValue(b) : b[sortConfig.key];
+
+      if (aValue === null && bValue === null) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+
+      if (aValue < bValue) return sortConfig.direction === "ascending" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "ascending" ? 1 : -1;
       return 0;
     });
-  }, [data, sortConfig]);
+  }, [data, sortConfig, columns]);
 
   const requestSort = (key) => {
-    setSortConfig((prevConfig) => {
-      if (prevConfig.key === key) {
-        return {
-          ...prevConfig,
-          direction:
-            prevConfig.direction === "ascending" ? "descending" : "ascending",
-        };
-      }
-      return { key, direction: "ascending" };
-    });
+    setSortConfig((prevConfig) => ({
+      key,
+      direction:
+        prevConfig.key === key && prevConfig.direction === "ascending"
+          ? "descending"
+          : "ascending",
+    }));
   };
 
   const getSortIcon = (columnKey) => {
@@ -45,56 +45,44 @@ function SortableTable({ columns, data, actions, renderExpandedRow }) {
     return <FaSort />;
   };
 
-  const renderCell = (item, column) => {
-    if (column.render) {
-      return column.render(item);
-    }
-
-    const value = item[column.key];
-    if (typeof value === "number") {
-      return `${formatIndianRupee(value)}`;
-    }
-
-    return value;
-  };
-
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm text-left text-text-primary">
-        <thead className="text-xs uppercase bg-card">
-          <tr>
-            {columns.map((column) => (
-              <th
-                key={column.key}
-                className="px-6 py-3 cursor-pointer"
-                onClick={() => requestSort(column.key)}
-              >
-                {column.label} {getSortIcon(column.key)}
-              </th>
-            ))}
-            {actions && <th className="px-6 py-3">Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {sortedData.map((item) => (
-            <React.Fragment key={item.id}>
-              <tr className="bg-background border-b border-border">
-                {columns.map((column) => (
-                  <td
-                    key={column.key}
-                    className={`px-6 py-4 ${column.className || ""}`}
-                  >
-                    {renderCell(item, column)}
-                  </td>
-                ))}
-                {actions && <td className="px-6 py-4">{actions(item)}</td>}
-              </tr>
-              {renderExpandedRow && renderExpandedRow(item)}
-            </React.Fragment>
+    <table className="w-full text-sm text-left text-text-primary">
+      <thead className="text-xs uppercase bg-card">
+        <tr>
+          {columns.map((column) => (
+            <th
+              key={column.key}
+              className="px-6 py-3 cursor-pointer"
+              onClick={() => requestSort(column.key)}
+            >
+              {column.label} {getSortIcon(column.key)}
+            </th>
           ))}
-        </tbody>
-      </table>
-    </div>
+          {actions && <th className="px-6 py-3">Actions</th>}
+        </tr>
+      </thead>
+      <tbody>
+        {sortedData.map((item) => (
+          <React.Fragment key={item.id}>
+            <tr className="bg-background border-b border-border">
+              {columns.map((column) => (
+                <td key={column.key} className="px-6 py-4">
+                  {column.render
+                    ? column.render(
+                        column.getValue
+                          ? column.getValue(item)
+                          : item[column.key]
+                      )
+                    : item[column.key]}
+                </td>
+              ))}
+              {actions && <td className="px-6 py-4">{actions(item)}</td>}
+            </tr>
+            {renderExpandedRow && renderExpandedRow(item)}
+          </React.Fragment>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
