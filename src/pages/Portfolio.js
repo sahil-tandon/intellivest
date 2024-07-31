@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { ref, onValue, set } from "firebase/database";
+import { db } from "../firebase";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import EditStockForm from "../components/EditStockForm";
@@ -24,29 +26,54 @@ function Portfolio() {
   const [apiLimitReached, setApiLimitReached] = useState(false);
 
   useEffect(() => {
-    const savedPortfolio = localStorage.getItem("portfolio");
-    const savedPastRecords = localStorage.getItem("pastRecords");
-    const cachedPrices = localStorage.getItem("stockPrices");
-    if (savedPortfolio) setPortfolio(JSON.parse(savedPortfolio));
-    if (savedPastRecords) setPastRecords(JSON.parse(savedPastRecords));
-    if (cachedPrices) {
-      setStockPrices(JSON.parse(cachedPrices));
-      setLastUpdated(new Date(localStorage.getItem("lastUpdated")));
-    }
+    const portfolioRef = ref(db, "portfolio");
+    const pastRecordsRef = ref(db, "pastRecords");
+
+    onValue(portfolioRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) setPortfolio(data);
+    });
+
+    onValue(pastRecordsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) setPastRecords(data);
+    });
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("portfolio", JSON.stringify(portfolio));
-    localStorage.setItem("pastRecords", JSON.stringify(pastRecords));
-  }, [portfolio, pastRecords]);
+  // useEffect(() => {
+  //   const savedPortfolio = localStorage.getItem("portfolio");
+  //   const savedPastRecords = localStorage.getItem("pastRecords");
+  //   const cachedPrices = localStorage.getItem("stockPrices");
+  //   if (savedPortfolio) setPortfolio(JSON.parse(savedPortfolio));
+  //   if (savedPastRecords) setPastRecords(JSON.parse(savedPastRecords));
+  //   if (cachedPrices) {
+  //     setStockPrices(JSON.parse(cachedPrices));
+  //     setLastUpdated(new Date(localStorage.getItem("lastUpdated")));
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    localStorage.setItem("stockPrices", JSON.stringify(stockPrices));
-    localStorage.setItem("lastUpdated", lastUpdated);
-  }, [stockPrices, lastUpdated]);
+  // useEffect(() => {
+  //   localStorage.setItem("portfolio", JSON.stringify(portfolio));
+  //   localStorage.setItem("pastRecords", JSON.stringify(pastRecords));
+  // }, [portfolio, pastRecords]);
+
+  // useEffect(() => {
+  //   localStorage.setItem("stockPrices", JSON.stringify(stockPrices));
+  //   localStorage.setItem("lastUpdated", lastUpdated);
+  // }, [stockPrices, lastUpdated]);
+
+  const savePortfolio = (newPortfolio) => {
+    set(ref(db, "portfolio"), newPortfolio);
+  };
+
+  const savePastRecords = (newPastRecords) => {
+    set(ref(db, "pastRecords"), newPastRecords);
+  };
 
   const addStock = (stock) => {
-    setPortfolio([...portfolio, { ...stock, id: Date.now() }]);
+    const newPortfolio = [...portfolio, { ...stock, id: Date.now() }];
+    setPortfolio(newPortfolio);
+    savePortfolio(newPortfolio);
     setShowAddForm(false);
   };
 
@@ -104,30 +131,32 @@ function Portfolio() {
   };
 
   const deleteStock = (id) => {
-    setPortfolio(portfolio.filter((stock) => stock.id !== id));
+    const newPortfolio = portfolio.filter((stock) => stock.id !== id);
+    setPortfolio(newPortfolio);
+    savePortfolio(newPortfolio);
   };
 
   const deletePastRecord = (id) => {
-    setPastRecords(pastRecords.filter((record) => record.id !== id));
+    const newPastRecords = pastRecords.filter((record) => record.id !== id);
+    setPastRecords(newPastRecords);
+    savePastRecords(newPastRecords);
   };
 
   const handleEditStock = (updatedStock) => {
-    setPortfolio(
-      portfolio.map((stock) =>
-        stock.id === updatedStock.id ? { ...stock, ...updatedStock } : stock
-      )
+    const newPortfolio = portfolio.map((stock) =>
+      stock.id === updatedStock.id ? { ...stock, ...updatedStock } : stock
     );
+    setPortfolio(newPortfolio);
+    savePortfolio(newPortfolio);
     setEditingStock(null);
   };
 
   const handleEditRecord = (updatedRecord) => {
-    setPastRecords(
-      pastRecords.map((record) =>
-        record.id === updatedRecord.id
-          ? { ...record, ...updatedRecord }
-          : record
-      )
+    const newPastRecords = pastRecords.map((record) =>
+      record.id === updatedRecord.id ? { ...record, ...updatedRecord } : record
     );
+    setPastRecords(newPastRecords);
+    savePastRecords(newPastRecords);
     setEditingRecord(null);
   };
 
@@ -150,17 +179,20 @@ function Portfolio() {
       daysHeld: calculateDaysHeld(stock.date, sellDate),
     };
 
-    setPastRecords([...pastRecords, soldRecord]);
+    const newPastRecords = [...pastRecords, soldRecord];
+    setPastRecords(newPastRecords);
+    savePastRecords(newPastRecords);
 
+    let newPortfolio;
     if (sellQuantity === stock.quantity) {
-      setPortfolio(portfolio.filter((s) => s.id !== stock.id));
+      newPortfolio = portfolio.filter((s) => s.id !== stock.id);
     } else {
-      setPortfolio(
-        portfolio.map((s) =>
-          s.id === stock.id ? { ...s, quantity: s.quantity - sellQuantity } : s
-        )
+      newPortfolio = portfolio.map((s) =>
+        s.id === stock.id ? { ...s, quantity: s.quantity - sellQuantity } : s
       );
     }
+    setPortfolio(newPortfolio);
+    savePortfolio(newPortfolio);
 
     setSellStock(null);
   };
