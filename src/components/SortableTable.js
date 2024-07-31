@@ -71,7 +71,8 @@ function SortableTable({ columns, data, actions, renderExpandedRow }) {
                     ? column.render(
                         column.getValue
                           ? column.getValue(item)
-                          : item[column.key]
+                          : item[column.key],
+                        item
                       )
                     : item[column.key]}
                 </td>

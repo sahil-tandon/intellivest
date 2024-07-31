@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import EditStockForm from "../components/EditStockForm";
 import { formatIndianRupee } from "../utils/currencyFormatting";
@@ -165,7 +166,19 @@ function Portfolio() {
   };
 
   const portfolioColumns = [
-    { key: "symbol", label: "Symbol", sortType: "string" },
+    {
+      key: "symbol",
+      label: "Symbol",
+      sortType: "string",
+      render: (value, stock) => (
+        <Link
+          to={`/stock/${stock.symbol}`}
+          className="text-primary hover:text-hover transition duration-200"
+        >
+          {value}
+        </Link>
+      ),
+    },
     { key: "exchange", label: "Exchange", sortType: "string" },
     { key: "quantity", label: "Quantity", sortType: "number" },
     {
@@ -242,7 +255,19 @@ function Portfolio() {
   ];
 
   const pastRecordsColumns = [
-    { key: "symbol", label: "Symbol", sortType: "string" },
+    {
+      key: "symbol",
+      label: "Symbol",
+      sortType: "string",
+      render: (value, stock) => (
+        <Link
+          to={`/stock/${stock.symbol}`}
+          className="text-primary hover:text-hover transition duration-200"
+        >
+          {value}
+        </Link>
+      ),
+    },
     { key: "quantity", label: "Quantity", sortType: "number" },
     {
       key: "purchasePrice",
