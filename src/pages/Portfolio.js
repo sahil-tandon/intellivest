@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ref, onValue, set } from "firebase/database";
+import { ref, onValue, set, update } from "firebase/database";
 import { db } from "../firebase";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -93,6 +93,11 @@ function Portfolio() {
         });
         setStockPrices(prices);
         setLastUpdated(new Date());
+
+        const updates = {};
+        updates["/stockPrices"] = prices;
+        updates["/lastUpdated"] = new Date().toISOString();
+        update(ref(db), updates);
       }
     } catch (error) {
       console.error("Error fetching stock prices:", error);
@@ -112,12 +117,14 @@ function Portfolio() {
     const newPortfolio = portfolio.filter((stock) => stock.id !== id);
     setPortfolio(newPortfolio);
     savePortfolio(newPortfolio);
+    set(ref(db, "portfolio"), newPortfolio);
   };
 
   const deletePastRecord = (id) => {
     const newPastRecords = pastRecords.filter((record) => record.id !== id);
     setPastRecords(newPastRecords);
     savePastRecords(newPastRecords);
+    set(ref(db, "pastRecords"), newPastRecords);
   };
 
   const handleEditStock = (updatedStock) => {
@@ -126,6 +133,11 @@ function Portfolio() {
     );
     setPortfolio(newPortfolio);
     savePortfolio(newPortfolio);
+
+    const updates = {};
+    updates["/portfolio"] = newPortfolio;
+    update(ref(db), updates);
+
     setEditingStock(null);
   };
 
@@ -135,6 +147,11 @@ function Portfolio() {
     );
     setPastRecords(newPastRecords);
     savePastRecords(newPastRecords);
+
+    const updates = {};
+    updates["/pastRecords"] = newPastRecords;
+    update(ref(db), updates);
+
     setEditingRecord(null);
   };
 
@@ -171,6 +188,11 @@ function Portfolio() {
     }
     setPortfolio(newPortfolio);
     savePortfolio(newPortfolio);
+
+    const updates = {};
+    updates["/pastRecords"] = newPastRecords;
+    updates["/portfolio"] = newPortfolio;
+    update(ref(db), updates);
 
     setSellStock(null);
   };
