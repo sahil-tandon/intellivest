@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Portfolio from "./pages/Portfolio";
 import Newsroom from "./pages/Newsroom";
 import MarketOverview from "./pages/MarketOverview";
+import StockDetail from "./pages/StockDetail";
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -121,6 +122,21 @@ function App() {
                     transition={pageTransition}
                   >
                     <MarketOverview />
+                  </motion.div>
+                }
+              />
+              <Route
+                path="/stock/:symbol"
+                element={
+                  <motion.div
+                    key="stockDetail"
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <StockDetail />
                   </motion.div>
                 }
               />
