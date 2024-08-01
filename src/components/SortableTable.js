@@ -55,7 +55,10 @@ function SortableTable({ columns, data, actions, renderExpandedRow }) {
               className="px-6 py-3 cursor-pointer"
               onClick={() => requestSort(column.key)}
             >
-              {column.label} {getSortIcon(column.key)}
+              <div className="flex items-center justify-between">
+                <span>{column.label}</span>
+                <span className="ml-2">{getSortIcon(column.key)}</span>
+              </div>
             </th>
           ))}
           {actions && <th className="px-6 py-3">Actions</th>}
