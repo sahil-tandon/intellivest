@@ -233,21 +233,20 @@ function Portfolio() {
           to={`/stock/${stock.symbol}`}
           className="text-primary hover:text-hover transition duration-200"
         >
-          {value}
+          {value} ({stock.exchange})
         </Link>
       ),
     },
-    { key: "exchange", label: "Exchange", sortType: "string" },
     { key: "quantity", label: "Quantity", sortType: "number" },
     {
       key: "price",
-      label: "Purchase Price",
+      label: "Avg Price",
       sortType: "number",
       render: (value) => `₹${formatIndianRupee(value.toFixed(2))}`,
     },
     {
       key: "currentPrice",
-      label: "Current Price",
+      label: "Mkt Price",
       sortType: "number",
       getValue: (stock) => getCurrentPrice(stock.symbol),
       render: (value) =>
@@ -255,7 +254,7 @@ function Portfolio() {
     },
     {
       key: "totalValue",
-      label: "Total Value",
+      label: "Value",
       sortType: "number",
       getValue: (stock) => {
         const currentPrice = getCurrentPrice(stock.symbol);
@@ -266,7 +265,7 @@ function Portfolio() {
     },
     {
       key: "profit",
-      label: "Profit",
+      label: "P/L",
       sortType: "number",
       getValue: (stock) => {
         const currentPrice = getCurrentPrice(stock.symbol);
@@ -285,7 +284,7 @@ function Portfolio() {
     },
     {
       key: "profitPercentage",
-      label: "Profit %",
+      label: "P/L%",
       sortType: "number",
       getValue: (stock) => {
         const currentPrice = getCurrentPrice(stock.symbol);
@@ -302,13 +301,11 @@ function Portfolio() {
         );
       },
     },
-    { key: "date", label: "Purchase Date", sortType: "date" },
     {
-      key: "daysHeld",
-      label: "Days Held",
-      sortType: "number",
-      getValue: (stock) => calculateDaysHeld(stock.date),
-      render: (value) => value,
+      key: "date",
+      label: "Buy Date (Days Held)",
+      sortType: "date",
+      render: (value) => `${value} (${calculateDaysHeld(value)})`,
     },
   ];
 

@@ -49,27 +49,36 @@ function SortableTable({ columns, data, actions, renderExpandedRow }) {
     <table className="w-full text-sm text-left text-text-primary">
       <thead className="text-xs uppercase bg-card">
         <tr>
-          {columns.map((column) => (
+          {columns.map((column, index) => (
             <th
               key={column.key}
-              className="px-6 py-3 cursor-pointer"
+              className="px-3 py-3 cursor-pointer"
               onClick={() => requestSort(column.key)}
             >
-              <div className="flex items-center justify-between">
+              <div
+                className={`flex items-center ${
+                  index === 0 ? "justify-start" : "justify-center"
+                }`}
+              >
                 <span>{column.label}</span>
                 <span className="ml-2">{getSortIcon(column.key)}</span>
               </div>
             </th>
           ))}
-          {actions && <th className="px-6 py-3">Actions</th>}
+          {actions && <th className="px-3 py-3 text-center">Actions</th>}
         </tr>
       </thead>
       <tbody>
         {sortedData.map((item) => (
           <React.Fragment key={item.id}>
             <tr className="bg-background border-b border-border">
-              {columns.map((column) => (
-                <td key={column.key} className="px-6 py-4">
+              {columns.map((column, index) => (
+                <td
+                  key={column.key}
+                  className={`px-3 py-4 ${
+                    index === 0 ? "text-left" : "text-center"
+                  }`}
+                >
                   {column.render
                     ? column.render(
                         column.getValue
@@ -80,7 +89,9 @@ function SortableTable({ columns, data, actions, renderExpandedRow }) {
                     : item[column.key]}
                 </td>
               ))}
-              {actions && <td className="px-6 py-4">{actions(item)}</td>}
+              {actions && (
+                <td className="px-3 py-4 text-center">{actions(item)}</td>
+              )}
             </tr>
             {renderExpandedRow && renderExpandedRow(item)}
           </React.Fragment>
