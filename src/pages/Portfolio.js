@@ -28,16 +28,41 @@ function Portfolio() {
   useEffect(() => {
     const portfolioRef = ref(db, "portfolio");
     const pastRecordsRef = ref(db, "pastRecords");
+    const stockPricesRef = ref(db, "stockPrices");
+    const lastUpdatedRef = ref(db, "lastUpdated");
 
-    onValue(portfolioRef, (snapshot) => {
+    const unsubscribePortfolio = onValue(portfolioRef, (snapshot) => {
       const data = snapshot.val();
       if (data) setPortfolio(data);
     });
 
-    onValue(pastRecordsRef, (snapshot) => {
+    const unsubscribePastRecords = onValue(pastRecordsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) setPastRecords(data);
     });
+
+    const unsubscribeStockPrices = onValue(stockPricesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        console.log("Loaded stock prices from Firebase:", data);
+        setStockPrices(data);
+      }
+    });
+
+    const unsubscribeLastUpdated = onValue(lastUpdatedRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        console.log("Loaded last updated time from Firebase:", data);
+        setLastUpdated(new Date(data));
+      }
+    });
+
+    return () => {
+      unsubscribePortfolio();
+      unsubscribePastRecords();
+      unsubscribeStockPrices();
+      unsubscribeLastUpdated();
+    };
   }, []);
 
   const savePortfolio = (newPortfolio) => {
@@ -55,9 +80,8 @@ function Portfolio() {
     setShowAddForm(false);
   };
 
-  const getCurrentPrice = (symbol, exchange) => {
-    const fullSymbol = `${symbol}.${exchange === "NSE" ? "NS" : "BO"}`;
-    return stockPrices[fullSymbol] || null;
+  const getCurrentPrice = (symbol) => {
+    return stockPrices[symbol] || null;
   };
 
   const fetchStockPrices = async () => {
@@ -89,15 +113,17 @@ function Portfolio() {
             stock.exchange === "NSE" ? "NS" : "BO"
           }`;
           const quote = quotes.find((q) => q.symbol === fullSymbol);
-          prices[fullSymbol] = quote ? quote.regularMarketPrice : null;
+          prices[stock.symbol] = quote ? quote.regularMarketPrice : null;
         });
+
         setStockPrices(prices);
-        setLastUpdated(new Date());
+        const now = new Date();
+        setLastUpdated(now);
 
         const updates = {};
         updates["/stockPrices"] = prices;
-        updates["/lastUpdated"] = new Date().toISOString();
-        update(ref(db), updates);
+        updates["/lastUpdated"] = now.toISOString();
+        await update(ref(db), updates);
       }
     } catch (error) {
       console.error("Error fetching stock prices:", error);
@@ -223,7 +249,7 @@ function Portfolio() {
       key: "currentPrice",
       label: "Current Price",
       sortType: "number",
-      getValue: (stock) => getCurrentPrice(stock.symbol, stock.exchange),
+      getValue: (stock) => getCurrentPrice(stock.symbol),
       render: (value) =>
         value !== null ? `₹${formatIndianRupee(value.toFixed(2))}` : "-",
     },
@@ -232,7 +258,7 @@ function Portfolio() {
       label: "Total Value",
       sortType: "number",
       getValue: (stock) => {
-        const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
+        const currentPrice = getCurrentPrice(stock.symbol);
         return currentPrice !== null ? stock.quantity * currentPrice : null;
       },
       render: (value) =>
@@ -243,7 +269,7 @@ function Portfolio() {
       label: "Profit",
       sortType: "number",
       getValue: (stock) => {
-        const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
+        const currentPrice = getCurrentPrice(stock.symbol);
         return currentPrice !== null
           ? (currentPrice - stock.price) * stock.quantity
           : null;
@@ -262,7 +288,7 @@ function Portfolio() {
       label: "Profit %",
       sortType: "number",
       getValue: (stock) => {
-        const currentPrice = getCurrentPrice(stock.symbol, stock.exchange);
+        const currentPrice = getCurrentPrice(stock.symbol);
         return currentPrice !== null
           ? ((currentPrice - stock.price) / stock.price) * 100
           : null;
@@ -414,9 +440,7 @@ function Portfolio() {
       <PortfolioSummary
         portfolio={portfolio}
         pastRecords={pastRecords}
-        getCurrentPrice={(symbol, exchange) =>
-          getCurrentPrice(symbol, exchange)
-        }
+        getCurrentPrice={(symbol) => getCurrentPrice(symbol)}
       />
       <div className="mb-4">
         <button
