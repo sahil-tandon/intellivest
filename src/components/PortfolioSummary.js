@@ -71,18 +71,18 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
     );
 
   return (
-    <div className="bg-card p-6 rounded-lg shadow-lg mb-8">
+    <div className="p-6 mb-8">
       <h2 className="text-2xl font-bold mb-4 text-primary">
         Portfolio Summary
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div className="bg-card-dark p-4 rounded-lg">
+        <div className="p-4">
           <p className="text-text-secondary mb-2">Total Invested Amount</p>
           <p className="text-3xl font-bold">
             ₹{formatIndianRupee(totalInvestedAmount.toFixed(2))}
           </p>
         </div>
-        <div className="bg-card-dark p-4 rounded-lg">
+        <div className="p-4">
           <p className="text-text-secondary mb-2">Unrealized Profit/Loss</p>
           <p
             className={`text-3xl font-bold ${
@@ -97,7 +97,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
               : ` (${totalUnrealizedProfitLossPercentage.toFixed(2)}%)`}
           </p>
         </div>
-        <div className="bg-card-dark p-4 rounded-lg">
+        <div className="p-4">
           <p className="text-text-secondary mb-2">Realized Profit/Loss</p>
           <p
             className={`text-3xl font-bold ${
@@ -108,7 +108,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
           </p>
         </div>
         {topPerformingStock && (
-          <div className="bg-card-dark p-4 rounded-lg">
+          <div className="p-4">
             <p className="text-text-secondary mb-2">Top Performing Stock</p>
             <div className="flex items-center">
               <FaArrowUp className="text-profit mr-2" />
@@ -122,7 +122,7 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
           </div>
         )}
         {worstPerformingStock && (
-          <div className="bg-card-dark p-4 rounded-lg">
+          <div className="p-4">
             <p className="text-text-secondary mb-2">Worst Performing Stock</p>
             <div className="flex items-center">
               <FaArrowDown className="text-loss mr-2" />
