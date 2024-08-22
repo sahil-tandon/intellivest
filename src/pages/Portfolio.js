@@ -8,6 +8,7 @@ import { formatIndianRupee } from "../utils/currencyFormatting";
 import PortfolioSummary from "../components/PortfolioSummary";
 import StockTransactionForm from "../components/StockTransactionForm";
 import SortableTable from "../components/SortableTable";
+import ProfitLossChart from "../components/ProfitLossChart";
 import { motion } from "framer-motion";
 import { FaEdit, FaMoneyBillWave, FaPlusCircle, FaTrash } from "react-icons/fa";
 
@@ -439,6 +440,7 @@ function Portfolio() {
         pastRecords={pastRecords}
         getCurrentPrice={(symbol) => getCurrentPrice(symbol)}
       />
+      <ProfitLossChart pastRecords={pastRecords} />
       <div className="mb-4">
         <button
           onClick={fetchStockPrices}
