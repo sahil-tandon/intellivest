@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import {
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -102,40 +102,35 @@ const ProfitLossChart = ({ pastRecords }) => {
         Net Realized Profit/Loss
       </h2>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
+        <LineChart
           data={chartData}
           margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
         >
-          <defs>
-            <linearGradient id="colorProfitLoss" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-            </linearGradient>
-          </defs>
           <XAxis
             dataKey="date"
             tickFormatter={(date) => new Date(date).toLocaleDateString()}
-            axisLine={false}
+            axisLine={{ stroke: "#E2E8F0", strokeWidth: 1 }}
             tickLine={false}
             tick={{ fill: "#94A3B8", fontSize: 12 }}
             dy={10}
           />
           <YAxis
             tickFormatter={(value) => `₹${formatIndianRupee(value.toFixed(0))}`}
-            axisLine={false}
+            axisLine={{ stroke: "#E2E8F0", strokeWidth: 1 }}
             tickLine={false}
             tick={{ fill: "#94A3B8", fontSize: 12 }}
             dx={-10}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Area
+          <Line
             type="monotone"
             dataKey="profitLoss"
             stroke="#8884d8"
-            fillOpacity={1}
-            fill="url(#colorProfitLoss)"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 8, fill: "#8884d8", stroke: "#FFFFFF" }}
           />
-        </AreaChart>
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );
