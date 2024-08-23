@@ -435,12 +435,16 @@ function Portfolio() {
   return (
     <div className="fade-in">
       <h1 className="text-3xl font-bold mb-8">Your Portfolio</h1>
-      <PortfolioSummary
-        portfolio={portfolio}
-        pastRecords={pastRecords}
-        getCurrentPrice={(symbol) => getCurrentPrice(symbol)}
-      />
-      <ProfitLossChart pastRecords={pastRecords} />
+      <div className="mb-8">
+        <PortfolioSummary
+          portfolio={portfolio}
+          pastRecords={pastRecords}
+          getCurrentPrice={(symbol) => getCurrentPrice(symbol)}
+        />
+      </div>
+      <div className="mb-8">
+        <ProfitLossChart pastRecords={pastRecords} />
+      </div>
       <div className="mb-4">
         <button
           onClick={fetchStockPrices}
