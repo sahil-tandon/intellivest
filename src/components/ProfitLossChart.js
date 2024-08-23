@@ -93,8 +93,22 @@ const ProfitLossChart = ({ pastRecords }) => {
     return null;
   };
 
+  const formatXAxis = (tickItem) => {
+    const date = new Date(tickItem);
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const formatYAxis = (value) => {
+    if (value === 0) return "₹0";
+    if (Math.abs(value) >= 10000000)
+      return `₹${(value / 10000000).toFixed(1)}Cr`;
+    if (Math.abs(value) >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+    if (Math.abs(value) >= 1000) return `₹${(value / 1000).toFixed(1)}K`;
+    return `₹${value}`;
+  };
+
   return (
-    <div className="mb-8">
+    <div className="mb-12">
       <h2 className="text-2xl font-bold mb-4 text-primary">
         Net Realized Profit/Loss
       </h2>
@@ -117,21 +131,24 @@ const ProfitLossChart = ({ pastRecords }) => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
           >
             <XAxis
               dataKey="date"
-              tickFormatter={(date) => new Date(date).toLocaleDateString()}
-              stroke="#E2E8F0"
+              tickFormatter={formatXAxis}
+              stroke="#94A3B8"
+              tick={{ fill: "#94A3B8", fontSize: 12 }}
+              tickMargin={10}
+              interval={"preserveStartEnd"}
             />
             <YAxis
-              tickFormatter={(value) =>
-                `₹${formatIndianRupee(value.toFixed(0))}`
-              }
-              stroke="#E2E8F0"
+              tickFormatter={formatYAxis}
+              stroke="#94A3B8"
+              tick={{ fill: "#94A3B8", fontSize: 12 }}
+              tickMargin={10}
             />
             <Tooltip content={<CustomTooltip />} />
-            <ReferenceLine y={0} stroke="#E2E8F0" />
+            <ReferenceLine y={0} stroke="#4B5563" strokeDasharray="3 3" />
             <Line
               type="monotone"
               dataKey="profitLoss"
