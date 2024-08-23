@@ -7,6 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
+  CartesianGrid,
 } from "recharts";
 import { formatIndianRupee } from "../utils/currencyFormatting";
 
@@ -133,6 +134,7 @@ const ProfitLossChart = ({ pastRecords }) => {
             data={chartData}
             margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
           >
+            <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" />
             <XAxis
               dataKey="date"
               tickFormatter={formatXAxis}
