@@ -6,6 +6,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  ReferenceLine,
 } from "recharts";
 import { formatIndianRupee } from "../utils/currencyFormatting";
 
@@ -70,10 +71,16 @@ const ProfitLossChart = ({ pastRecords }) => {
     });
   }, [pastRecords]);
 
+  const totalProfit = useMemo(() => {
+    return chartData.length > 0
+      ? chartData[chartData.length - 1].profitLoss
+      : 0;
+  }, [chartData]);
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-background p-4 border border-text-secondary rounded shadow-lg">
+        <div className="bg-background p-4 border border-text-secondary rounded">
           <p className="text-sm text-text-primary">
             {`Date: ${new Date(label).toLocaleDateString()}`}
           </p>
@@ -86,52 +93,56 @@ const ProfitLossChart = ({ pastRecords }) => {
     return null;
   };
 
-  if (!chartData || chartData.length === 0) {
-    return (
-      <div className="w-full h-96 bg-card rounded-lg shadow-lg p-6 mb-8 flex items-center justify-center">
-        <p className="text-xl text-text-secondary">
-          No profit/loss data available
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full h-96 bg-card rounded-lg shadow-lg p-6 mb-8">
-      <h2 className="text-2xl font-bold mb-6 text-primary">
+    <div className="mb-8">
+      <h2 className="text-2xl font-bold mb-4 text-primary">
         Net Realized Profit/Loss
       </h2>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={chartData}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-        >
-          <XAxis
-            dataKey="date"
-            tickFormatter={(date) => new Date(date).toLocaleDateString()}
-            axisLine={{ stroke: "#E2E8F0", strokeWidth: 1 }}
-            tickLine={false}
-            tick={{ fill: "#94A3B8", fontSize: 12 }}
-            dy={10}
-          />
-          <YAxis
-            tickFormatter={(value) => `₹${formatIndianRupee(value.toFixed(0))}`}
-            axisLine={{ stroke: "#E2E8F0", strokeWidth: 1 }}
-            tickLine={false}
-            tick={{ fill: "#94A3B8", fontSize: 12 }}
-            dx={-10}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Line
-            type="monotone"
-            dataKey="profitLoss"
-            stroke="#8884d8"
-            strokeWidth={2}
-            dot={false}
-            activeDot={{ r: 8, fill: "#8884d8", stroke: "#FFFFFF" }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div className="mb-4 flex justify-between items-center">
+        <p className="text-lg text-text-secondary">
+          Total Realized:
+          <span
+            className={`ml-2 font-bold ${
+              totalProfit >= 0 ? "text-profit" : "text-loss"
+            }`}
+          >
+            ₹{formatIndianRupee(totalProfit.toFixed(2))}
+          </span>
+        </p>
+        <p className="text-sm text-text-secondary">
+          {`${chartData.length} transactions`}
+        </p>
+      </div>
+      <div className="w-full h-96">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <XAxis
+              dataKey="date"
+              tickFormatter={(date) => new Date(date).toLocaleDateString()}
+              stroke="#E2E8F0"
+            />
+            <YAxis
+              tickFormatter={(value) =>
+                `₹${formatIndianRupee(value.toFixed(0))}`
+              }
+              stroke="#E2E8F0"
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <ReferenceLine y={0} stroke="#E2E8F0" />
+            <Line
+              type="monotone"
+              dataKey="profitLoss"
+              stroke="#8884d8"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 8, fill: "#8884d8", stroke: "#FFFFFF" }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

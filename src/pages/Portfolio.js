@@ -442,7 +442,9 @@ function Portfolio() {
           getCurrentPrice={(symbol) => getCurrentPrice(symbol)}
         />
       </div>
-      <ProfitLossChart pastRecords={pastRecords} />
+      <div className="mb-8">
+        <ProfitLossChart pastRecords={pastRecords} />
+      </div>
       <div className="mb-4">
         <button
           onClick={fetchStockPrices}
