@@ -141,21 +141,25 @@ function PortfolioSummary({ portfolio, pastRecords, getCurrentPrice }) {
   );
 
   const StatBox = ({ title, value, subValue, valueColor }) => (
-    <div className="bg-background rounded-lg p-4 shadow">
+    <div className="p-4">
       <h3 className="text-sm font-semibold mb-2 text-text-secondary">
         {title}
       </h3>
       <p className={`text-xl font-bold ${valueColor || "text-primary"}`}>
         {value}
       </p>
-      {subValue && <p className="text-sm text-text-secondary">{subValue}</p>}
+      {subValue && (
+        <p className="text-sm text-text-secondary mt-1">{subValue}</p>
+      )}
     </div>
   );
 
   return (
-    <div className="bg-card rounded-lg shadow-lg mb-8">
-      <h2 className="text-2xl font-bold p-6 text-primary">Portfolio Summary</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+    <div className="mb-8">
+      <h2 className="text-2xl font-bold mb-6 text-primary">
+        Portfolio Summary
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatBox
           title="Total Portfolio Value"
           value={`₹${formatIndianRupee(currentPortfolioValue.toFixed(2))}`}
