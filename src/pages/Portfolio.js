@@ -87,33 +87,45 @@ function Portfolio() {
 
   const fetchStockPrices = async () => {
     try {
-      const symbols = portfolio
-        .map(
-          (stock) => `${stock.symbol}.${stock.exchange === "NSE" ? "NS" : "BO"}`
-        )
-        .join(",");
+      const uniqueSymbols = [
+        ...new Set(
+          portfolio.map(
+            (stock) =>
+              `${stock.symbol}.${stock.exchange === "NSE" ? "NS" : "BO"}`
+          )
+        ),
+      ];
       const region = "IN";
 
-      const options = {
-        method: "GET",
-        url: "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/v2/get-quotes",
-        params: { region, symbols },
-        headers: {
-          "x-rapidapi-key": API_KEY,
-          "x-rapidapi-host": API_HOST,
-        },
+      const fetchBatch = async (symbols) => {
+        const options = {
+          method: "GET",
+          url: "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/v2/get-quotes",
+          params: { region, symbols: symbols.join(",") },
+          headers: {
+            "x-rapidapi-key": API_KEY,
+            "x-rapidapi-host": API_HOST,
+          },
+        };
+
+        const response = await axios.request(options);
+        return response.data.quoteResponse.result;
       };
 
-      const response = await axios.request(options);
-      const quotes = response.data.quoteResponse.result;
+      const allQuotes = [];
+      for (let i = 0; i < uniqueSymbols.length; i += 50) {
+        const batch = uniqueSymbols.slice(i, i + 50);
+        const batchQuotes = await fetchBatch(batch);
+        allQuotes.push(...batchQuotes);
+      }
 
-      if (quotes && Array.isArray(quotes)) {
+      if (allQuotes && Array.isArray(allQuotes)) {
         const prices = {};
         portfolio.forEach((stock) => {
           const fullSymbol = `${stock.symbol}.${
             stock.exchange === "NSE" ? "NS" : "BO"
           }`;
-          const quote = quotes.find((q) => q.symbol === fullSymbol);
+          const quote = allQuotes.find((q) => q.symbol === fullSymbol);
           prices[stock.symbol] = quote ? quote.regularMarketPrice : null;
         });
 
